@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#151214">
+    <title>my dompet</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/icon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=7">
+    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script defer src="app.js?v=7"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="side-nav" aria-label="Navigasi desktop">
+        <a class="brand" href="#dashboard" data-view-link="dashboard" aria-label="my dompet dashboard">
+          <span class="brand-mark">md</span>
+          <span class="brand-copy">
+            <strong>my dompet</strong>
+            <small>Everyday money OS</small>
+          </span>
+        </a>
+
+        <nav class="side-nav-links">
+          <button class="nav-link is-active" type="button" data-view-link="dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            Dashboard
+          </button>
+          <button class="nav-link" type="button" data-view-link="transactions">
+            <i data-lucide="list-filter"></i>
+            Transaksi
+          </button>
+          <button class="nav-link" type="button" data-view-link="reports">
+            <i data-lucide="chart-no-axes-combined"></i>
+            Laporan
+          </button>
+          <button class="nav-link" type="button" data-view-link="settings">
+            <i data-lucide="settings-2"></i>
+            Setting
+          </button>
+        </nav>
+
+        <div class="license-tile">
+          <span>Workspace</span>
+          <strong>Lifetime</strong>
+          <small>Spreadsheet connected</small>
+        </div>
+      </aside>
+
+      <main class="app-main">
+        <header class="top-bar">
+          <div>
+            <p class="eyebrow" id="todayLabel">Hari ini</p>
+            <h1 id="screenTitle">Dashboard</h1>
+          </div>
+          <div class="top-actions">
+            <button class="icon-button" type="button" id="syncButton" aria-label="Sinkronkan data">
+              <i data-lucide="refresh-cw"></i>
+            </button>
+            <button class="primary-action" type="button" data-open-transaction>
+              <i data-lucide="plus"></i>
+              <span>Tambah</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="view is-active" id="view-dashboard" data-view="dashboard">
+          <div class="balance-card">
+            <div class="balance-card__top">
+              <div>
+                <span>Total Saldo</span>
+                <strong id="balanceAmount">Rp 0</strong>
+              </div>
+              <button class="soft-button" type="button" id="exportCsvButton">
+                <i data-lucide="download"></i>
+                CSV
+              </button>
+            </div>
+            <div class="balance-meta">
+              <span id="monthCashflow">Cashflow bulan ini Rp 0</span>
+              <span id="syncStatus">Mode demo lokal</span>
+            </div>
+            <div class="balance-signal" aria-label="Ringkasan ritme keuangan">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card income">
+              <span>Pemasukan</span>
+              <strong id="incomeAmount">Rp 0</strong>
+              <small id="incomeCount">0 transaksi</small>
+            </article>
+            <article class="metric-card expense">
+              <span>Pengeluaran</span>
+              <strong id="expenseAmount">Rp 0</strong>
+              <small id="expenseCount">0 transaksi</small>
+            </article>
+            <article class="metric-card budget">
+              <span>Budget Terpakai</span>
+              <strong id="budgetPercent">0%</strong>
+              <small id="budgetAmount">Rp 0 dari Rp 0</small>
+            </article>
+          </div>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Cashflow</p>
+                <h2>7 hari terakhir</h2>
+              </div>
+              <select id="monthSelector" aria-label="Pilih bulan laporan"></select>
+            </div>
+            <div class="mini-chart" id="weeklyChart" aria-label="Grafik cashflow 7 hari"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Kategori</p>
+                <h2>Pengeluaran terbesar</h2>
+              </div>
+              <button class="ghost-button" type="button" data-view-link="reports">Detail</button>
+            </div>
+            <div class="category-list" id="categoryList"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Aktivitas</p>
+                <h2>Transaksi terbaru</h2>
+              </div>
+              <button class="ghost-button" type="button" data-view-link="transactions">Lihat</button>
+            </div>
+            <div class="transaction-list compact" id="recentTransactions"></div>
+          </section>
+        </section>
+
+        <section class="view" id="view-transactions" data-view="transactions">
+          <div class="toolbar">
+            <label class="search-field">
+              <i data-lucide="search"></i>
+              <input id="searchInput" type="search" placeholder="Cari transaksi">
+            </label>
+            <select id="typeFilter" aria-label="Filter jenis transaksi">
+              <option value="all">Semua</option>
+              <option value="income">Pemasukan</option>
+              <option value="expense">Pengeluaran</option>
+            </select>
+          </div>
+          <div class="transaction-list" id="transactionList"></div>
+        </section>
+
+        <section class="view" id="view-reports" data-view="reports">
+          <div class="report-grid">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Ringkasan</p>
+                  <h2>Bulan berjalan</h2>
+                </div>
+              </div>
+              <div class="report-summary" id="reportSummary"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Distribusi</p>
+                  <h2>Per kategori</h2>
+                </div>
+              </div>
+              <div class="category-list" id="reportCategoryList"></div>
+            </section>
+
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Akun</p>
+                  <h2>Saldo per dompet</h2>
+                </div>
+              </div>
+              <div class="account-grid" id="accountGrid"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-settings" data-view="settings">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Profil</p>
+                <h2>Preferensi</h2>
+              </div>
+            </div>
+            <form class="settings-form" id="settingsForm">
+              <label>
+                Nama
+                <input id="userNameInput" type="text" autocomplete="name">
+              </label>
+              <label>
+                Budget bulanan
+                <input id="monthlyBudgetInput" type="text" inputmode="numeric">
+              </label>
+              <details class="admin-details">
+                <summary>
+                  <span>Koneksi database</span>
+                  <small>Area admin</small>
+                </summary>
+                <label>
+                  URL database spreadsheet
+                  <input id="apiUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+                  <small class="field-help">Untuk client, bagian ini bisa kita isi saat setup. Mereka cukup pakai app dan kode akses.</small>
+                </label>
+              </details>
+              <button class="primary-action full" type="submit" id="saveSettingsButton">
+                <i data-lucide="save"></i>
+                <span>Simpan preferensi</span>
+              </button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Database</p>
+                <h2>Workspace my dompet</h2>
+              </div>
+            </div>
+            <div class="sync-actions">
+              <button class="secondary-action" type="button" id="setupSheetButton">
+                <i data-lucide="table-properties"></i>
+                Siapkan
+              </button>
+              <button class="secondary-action" type="button" id="pullSheetButton">
+                <i data-lucide="cloud-download"></i>
+                Ambil
+              </button>
+              <button class="secondary-action" type="button" id="pushSheetButton">
+                <i data-lucide="cloud-upload"></i>
+                Backup
+              </button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Produk</p>
+                <h2>Akses lifetime</h2>
+              </div>
+              <span class="status-pill">Aktif</span>
+            </div>
+            <div class="license-card">
+              <span>my dompet Pro</span>
+              <strong>One-time purchase</strong>
+              <small id="licenseKeyLabel">MD-LIFETIME-DEMO</small>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <button class="mobile-fab" type="button" data-open-transaction aria-label="Tambah transaksi">
+        <i data-lucide="plus"></i>
+      </button>
+
+      <nav class="bottom-nav" aria-label="Navigasi mobile">
+        <button class="bottom-link is-active" type="button" data-view-link="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Home</span>
+        </button>
+        <button class="bottom-link" type="button" data-view-link="transactions">
+          <i data-lucide="receipt-text"></i>
+          <span>Transaksi</span>
+        </button>
+        <button class="bottom-link" type="button" data-view-link="reports">
+          <i data-lucide="chart-pie"></i>
+          <span>Laporan</span>
+        </button>
+        <button class="bottom-link" type="button" data-view-link="settings">
+          <i data-lucide="settings-2"></i>
+          <span>Setting</span>
+        </button>
+      </nav>
+    </div>
+
+    <dialog class="transaction-modal" id="transactionDialog">
+      <form method="dialog" class="modal-card" id="transactionForm">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Transaksi</p>
+            <h2 id="transactionModalTitle">Tambah transaksi</h2>
+          </div>
+          <button class="icon-button" type="button" id="closeModalButton" aria-label="Tutup">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <input id="transactionId" type="hidden">
+
+        <div class="segmented-control" role="group" aria-label="Jenis transaksi">
+          <button class="is-active" type="button" data-type-option="expense">
+            <i data-lucide="arrow-up-right"></i>
+            Keluar
+          </button>
+          <button type="button" data-type-option="income">
+            <i data-lucide="arrow-down-left"></i>
+            Masuk
+          </button>
+        </div>
+
+        <label class="amount-field">
+          Jumlah
+          <input id="amountInput" type="text" inputmode="numeric" placeholder="0" required>
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Tanggal
+            <input id="dateInput" type="date" required>
+          </label>
+          <label>
+            Kategori
+            <select id="categoryInput" required></select>
+          </label>
+          <label>
+            Akun
+            <select id="accountInput" required></select>
+          </label>
+          <label>
+            Catatan
+            <input id="noteInput" type="text" placeholder="Opsional">
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="secondary-action" type="button" id="deleteTransactionButton">
+            <i data-lucide="trash-2"></i>
+            Hapus
+          </button>
+          <button class="primary-action" type="submit" id="saveTransactionButton">
+            <i data-lucide="check"></i>
+            <span>Simpan</span>
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

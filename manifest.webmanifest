@@ -1,0 +1,19 @@
+{
+  "name": "my dompet",
+  "short_name": "my dompet",
+  "description": "Finance tracker lifetime dengan database spreadsheet.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f8fb",
+  "theme_color": "#151214",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
