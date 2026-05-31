@@ -672,22 +672,53 @@ async function deleteTransaction(id) {
   }
 }
 
-function saveSettingsFromForm(event) {
+async function saveSettingsFromForm(event) {
   event.preventDefault();
   if (state.busy.savingSettings) return;
   setBusy("savingSettings", true, "saveSettingsButton", "Menyimpan...");
+
+  const previousApiUrl = state.settings.apiUrl || "";
+  const nextApiUrl = document.getElementById("apiUrlInput").value.trim();
+  const apiChanged = previousApiUrl !== nextApiUrl;
+  const resetDatabase = apiChanged && nextApiUrl && document.getElementById("resetDatabaseOnSave").checked;
 
   state.settings = {
     ...state.settings,
     userName: document.getElementById("userNameInput").value.trim() || "Owner",
     monthlyBudget: numberFromInput(document.getElementById("monthlyBudgetInput").value),
-    apiUrl: document.getElementById("apiUrlInput").value.trim()
+    apiUrl: nextApiUrl
   };
 
   persistSettings();
-  showToast("Setting tersimpan");
-  render();
-  setBusy("savingSettings", false, "saveSettingsButton");
+
+  try {
+    if (apiChanged) {
+      state.transactions = [];
+      saveTransactions();
+      render();
+
+      if (resetDatabase) {
+        setSyncStatus("Menyiapkan...");
+        await apiRequest("replaceTransactions", { transactions: [] });
+        setSyncStatus("Online");
+        showToast("Database baru siap kosong");
+      } else if (nextApiUrl) {
+        await syncFromSheet(false);
+        showToast("Database spreadsheet tersambung");
+      } else {
+        setSyncStatus("Lokal");
+        showToast("Mode lokal aktif");
+      }
+    } else {
+      showToast("Setting tersimpan");
+      render();
+    }
+  } catch (error) {
+    setSyncStatus("Setup perlu dicek");
+    showToast(getFriendlySyncError(error));
+  } finally {
+    setBusy("savingSettings", false, "saveSettingsButton");
+  }
 }
 
 function applySetupParamsFromUrl() {

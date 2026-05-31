@@ -1098,6 +1098,38 @@ button:disabled {
   padding: 0 13px;
 }
 
+.database-field input {
+  font-size: 0.9rem;
+}
+
+.check-option {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 36px;
+  gap: 10px;
+  padding: 0 12px;
+  border: 2px solid rgba(21, 18, 20, 0.1);
+  border-radius: 999px;
+  color: #151214;
+  background: #fff4df;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.check-option input {
+  width: 18px;
+  height: 18px;
+  min-height: auto;
+  padding: 0;
+  accent-color: #baff5a;
+}
+
+.check-option span {
+  min-width: 0;
+}
+
 .category-manager {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

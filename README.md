@@ -40,7 +40,7 @@ http://localhost:4173
 node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --api "https://script.google.com/macros/s/.../exec"
 ```
 
-Parameter `api` dan `token` akan disimpan otomatis. Secara default setup link juga membawa `fresh=1`, jadi transaksi lokal/demo lama dan isi sheet `Transactions` untuk database itu akan dikosongkan. Kalau ingin mempertahankan data sheet lama, tambahkan opsi `--keep-data` saat generate setup link.
+Parameter `api` dan `token` akan disimpan otomatis. Secara default setup link juga membawa `fresh=1`, jadi transaksi lokal/demo lama dan isi sheet `Transactions` untuk database itu akan dikosongkan. URL spreadsheet juga bisa diganti manual lewat `Setting > Preferensi > URL Web App spreadsheet`. Kalau ingin mempertahankan data sheet lama, tambahkan opsi `--keep-data` saat generate setup link.
 
 ## Aktivasi token pembeli
 
