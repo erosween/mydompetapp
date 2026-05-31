@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=19">
+    <link rel="stylesheet" href="styles.css?v=20">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script defer src="app.js?v=19"></script>
+    <script defer src="app.js?v=20"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -351,12 +351,23 @@
                 <p class="eyebrow">Produk</p>
                 <h2>Akses lifetime</h2>
               </div>
-              <span class="status-pill">Aktif</span>
+              <span class="status-pill" id="licenseStatusPill">Belum aktif</span>
             </div>
             <div class="license-card">
               <span>my dompet Pro</span>
               <strong>One-time purchase</strong>
-              <small id="licenseKeyLabel">MD-LIFETIME-DEMO</small>
+              <small id="licenseKeyLabel">Belum ada token</small>
+              <form class="license-form" id="licenseForm">
+                <label>
+                  Kode akses
+                  <input id="licenseKeyInput" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MD-ABCD-1234-EFGH">
+                </label>
+                <button class="primary-action full" type="submit" id="activateLicenseButton">
+                  <i data-lucide="key-round"></i>
+                  <span>Aktifkan token</span>
+                </button>
+              </form>
+              <small class="field-help">Kode ini kita kasih setelah pembelian. Untuk client awam, bagian database tetap bisa kita setup-kan.</small>
             </div>
           </section>
         </section>
@@ -445,6 +456,28 @@
             <span>Simpan</span>
           </button>
         </div>
+      </form>
+    </dialog>
+
+    <dialog class="activation-dialog" id="activationDialog">
+      <form method="dialog" class="activation-card" id="activationForm">
+        <div class="activation-mark">
+          <span>md</span>
+        </div>
+        <div>
+          <p class="eyebrow">Aktivasi</p>
+          <h2>Masukkan kode akses</h2>
+          <p class="activation-copy">Kode lifetime diberikan setelah pembelian. Setelah aktif, app akan tersimpan di device ini.</p>
+        </div>
+        <label class="activation-field">
+          Kode token
+          <input id="activationTokenInput" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MD-ABCD-1234-EFGH" required>
+        </label>
+        <button class="primary-action full" type="submit" id="activateDialogButton">
+          <i data-lucide="key-round"></i>
+          <span>Aktifkan my dompet</span>
+        </button>
+        <small class="field-help">Kalau kita yang setup, token ini bisa langsung kita isi sebelum dikirim ke client.</small>
       </form>
     </dialog>
 

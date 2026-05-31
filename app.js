@@ -9,6 +9,7 @@ const DEFAULT_CATEGORIES = {
 };
 
 const DEFAULT_ACCOUNTS = ["Cash", "Bank", "E-Wallet", "Kartu Kredit"];
+const LICENSE_TOKEN_PATTERN = /^MD-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 
 const VIEW_TITLES = {
   dashboard: "Dompet hari ini",
@@ -56,6 +57,7 @@ function init() {
   bindEvents();
   render();
   registerServiceWorker();
+  if (!isLicenseActive()) window.setTimeout(openActivationDialog, 250);
 
   if (state.settings.apiUrl) {
     syncFromSheet(false).catch(() => {
@@ -145,6 +147,20 @@ function bindEvents() {
   });
 
   document.getElementById("settingsForm").addEventListener("submit", saveSettingsFromForm);
+  document.getElementById("licenseForm").addEventListener("submit", (event) => {
+    activateLicenseFromForm(event, "licenseKeyInput");
+  });
+  document.getElementById("activationForm").addEventListener("submit", (event) => {
+    activateLicenseFromForm(event, "activationTokenInput");
+  });
+  document.getElementById("activationDialog").addEventListener("cancel", (event) => {
+    if (!isLicenseActive()) event.preventDefault();
+  });
+  ["licenseKeyInput", "activationTokenInput"].forEach((id) => {
+    document.getElementById(id).addEventListener("input", (event) => {
+      event.target.value = formatLicenseToken(event.target.value);
+    });
+  });
   document.querySelectorAll("[data-category-form]").forEach((form) => {
     form.addEventListener("submit", addCategoryFromForm);
   });
@@ -363,8 +379,58 @@ function renderSettings() {
   document.getElementById("userNameInput").value = state.settings.userName;
   document.getElementById("monthlyBudgetInput").value = formatInputNumber(String(state.settings.monthlyBudget || ""));
   document.getElementById("apiUrlInput").value = state.settings.apiUrl || "";
-  document.getElementById("licenseKeyLabel").textContent = state.settings.licenseKey || "MD-LIFETIME-DEMO";
+  document.getElementById("licenseKeyInput").value = state.settings.licenseKey || "";
+  renderLicenseState();
   renderCategoryManager();
+}
+
+function renderLicenseState() {
+  const isActive = isLicenseActive();
+  const status = document.getElementById("licenseStatusPill");
+  const label = document.getElementById("licenseKeyLabel");
+
+  status.textContent = isActive ? "Aktif" : "Belum aktif";
+  status.classList.toggle("is-inactive", !isActive);
+  label.textContent = state.settings.licenseKey || "Belum ada token";
+}
+
+function activateLicenseFromForm(event, inputId) {
+  event.preventDefault();
+  const input = document.getElementById(inputId);
+  const token = formatLicenseToken(input.value);
+  input.value = token;
+
+  if (!isLicenseTokenValid(token)) {
+    showToast("Token belum valid. Format: MD-ABCD-1234-EFGH");
+    input.focus();
+    return;
+  }
+
+  state.settings = {
+    ...state.settings,
+    licenseKey: token,
+    activatedAt: state.settings.activatedAt || new Date().toISOString()
+  };
+
+  persistSettings();
+  renderSettings();
+  closeActivationDialog();
+  showToast("Token lifetime aktif");
+}
+
+function openActivationDialog() {
+  const dialog = document.getElementById("activationDialog");
+  const input = document.getElementById("activationTokenInput");
+
+  if (isLicenseActive() || dialog.open) return;
+  input.value = state.settings.licenseKey || "";
+  dialog.showModal();
+  input.focus();
+}
+
+function closeActivationDialog() {
+  const dialog = document.getElementById("activationDialog");
+  if (dialog.open) dialog.close();
 }
 
 function renderCategoryManager() {
@@ -1142,6 +1208,28 @@ function transactionTitle(transaction) {
   return transaction.note || transaction.category || "Transaksi";
 }
 
+function isLicenseActive() {
+  return isLicenseTokenValid(state.settings.licenseKey);
+}
+
+function isLicenseTokenValid(token) {
+  const value = normalizeLicenseToken(token);
+  return value === "MD-LIFETIME-DEMO" || LICENSE_TOKEN_PATTERN.test(value);
+}
+
+function normalizeLicenseToken(value) {
+  return String(value || "").trim().toUpperCase();
+}
+
+function formatLicenseToken(value) {
+  const raw = normalizeLicenseToken(value).replace(/[^A-Z0-9]/g, "");
+  const body = (raw.startsWith("MD") ? raw.slice(2) : raw).slice(0, 12);
+  const chunks = body.match(/.{1,4}/g) || [];
+
+  if (!body) return raw.startsWith("MD") ? "MD-" : "";
+  return ["MD", ...chunks].join("-");
+}
+
 function getCategories(type) {
   return normalizeCategoryList(state.settings.categories?.[type], DEFAULT_CATEGORIES[type]);
 }
@@ -1187,7 +1275,8 @@ function loadSettings() {
     userName: "Owner",
     monthlyBudget: 5000000,
     apiUrl: "",
-    licenseKey: "MD-LIFETIME-DEMO",
+    licenseKey: "",
+    activatedAt: "",
     categories: cloneDefaultCategories()
   };
 

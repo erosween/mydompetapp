@@ -37,6 +37,25 @@ http://localhost:4173
 7. Buka app `my dompet > Setting`, paste URL, lalu klik `Simpan setting`.
 8. Klik `Setup sheet`, lalu `Push lokal` kalau mau mengirim data demo/lokal.
 
+## Aktivasi token pembeli
+
+Token dimasukkan pembeli saat pertama membuka app, atau lewat `Setting > Akses lifetime`.
+
+Format token MVP:
+
+```text
+MD-ABCD-1234-EFGH
+```
+
+Alur jualan yang disarankan:
+
+1. Pembeli transfer dan kirim email Google yang dipakai untuk spreadsheet.
+2. Kita buatkan Google Sheet baru untuk pembeli.
+3. Kita pasang `backend/apps-script.gs` di Apps Script pembeli atau sheet yang kita siapkan.
+4. Kita deploy Web app dan paste URL `/exec` ke setting app.
+5. Kita isi token lifetime pembeli di `Setting > Akses lifetime`.
+6. Pembeli tinggal buka URL app, login token kalau belum diisi, lalu Add to Home Screen.
+
 ## Packaging iOS dan Android
 
 Versi ini sudah PWA. Untuk jualan cepat, user bisa buka URL app dari browser HP dan pilih Add to Home Screen. Kalau nanti butuh APK/IPA native wrapper, app ini bisa dibungkus dengan Capacitor tanpa mengubah logic utama.

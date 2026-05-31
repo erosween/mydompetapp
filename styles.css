@@ -613,6 +613,8 @@ button:disabled {
 .toolbar select,
 .settings-form input,
 .settings-form select,
+.license-form input,
+.activation-field input,
 .category-add-form input,
 .form-grid input,
 .form-grid select,
@@ -640,6 +642,8 @@ button:disabled {
 .panel select:focus,
 .toolbar select:focus,
 .settings-form input:focus,
+.license-form input:focus,
+.activation-field input:focus,
 .category-add-form input:focus,
 .form-grid input:focus,
 .form-grid select:focus,
@@ -1067,6 +1071,8 @@ button:disabled {
 }
 
 .settings-form label,
+.license-form label,
+.activation-field,
 .form-grid label,
 .amount-field {
   display: grid;
@@ -1084,6 +1090,8 @@ button:disabled {
 }
 
 .settings-form input,
+.license-form input,
+.activation-field input,
 .category-add-form input,
 .form-grid input,
 .form-grid select,
@@ -1235,9 +1243,13 @@ button:disabled {
   font-weight: 950;
 }
 
+.status-pill.is-inactive {
+  background: #fff4df;
+}
+
 .license-card {
   display: grid;
-  gap: 7px;
+  gap: 12px;
   padding: 16px;
   border: 2px solid #151214;
   border-radius: var(--radius);
@@ -1252,6 +1264,11 @@ button:disabled {
 .license-card small {
   color: var(--muted);
   font-weight: 850;
+}
+
+.license-form {
+  display: grid;
+  gap: 10px;
 }
 
 .mobile-fab,
@@ -1321,6 +1338,60 @@ button:disabled {
   border-radius: 16px;
   color: var(--ink);
   background: transparent;
+}
+
+.activation-dialog {
+  width: min(500px, calc(100% - 24px));
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  color: var(--ink);
+  background: transparent;
+}
+
+.activation-dialog::backdrop {
+  background: rgba(21, 18, 20, 0.62);
+  backdrop-filter: blur(5px);
+}
+
+.activation-card {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 2px solid #151214;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 7px 7px 0 #151214;
+}
+
+.activation-mark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border: 2px solid #151214;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #baff5a, #41e3bd 54%, #8ea2ff);
+  box-shadow: 5px 5px 0 #151214;
+}
+
+.activation-mark span {
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  font-weight: 700;
+}
+
+.activation-card h2 {
+  margin: 3px 0 0;
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  font-size: clamp(1.8rem, 6vw, 2.5rem);
+  line-height: 1.02;
+}
+
+.activation-copy {
+  margin: 9px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+  font-weight: 750;
 }
 
 .transaction-modal::backdrop {
