@@ -59,7 +59,7 @@ function init() {
 
   if (state.settings.apiUrl) {
     syncFromSheet(false).catch(() => {
-      setSyncStatus("Spreadsheet belum tersambung");
+      setSyncStatus("Offline");
     });
   }
 }
@@ -198,7 +198,8 @@ function renderDashboard() {
   const budget = Number(state.settings.monthlyBudget) || 0;
   const budgetRatio = budget > 0 ? Math.min(999, Math.round((monthTotals.expense / budget) * 100)) : 0;
 
-  document.getElementById("balanceAmount").textContent = money(allTotals.balance);
+  document.getElementById("balanceAmount").textContent = compactMoney(allTotals.balance);
+  document.getElementById("summaryPeriodLabel").textContent = monthLabel(state.selectedMonth);
   document.getElementById("incomeAmount").textContent = compactMoney(monthTotals.income);
   document.getElementById("expenseAmount").textContent = compactMoney(monthTotals.expense);
   document.getElementById("budgetPercent").textContent = `${budgetRatio}%`;
@@ -209,10 +210,10 @@ function renderDashboard() {
   document.getElementById("todayExpenseAmount").textContent = compactMoney(todayTotals.expense);
   document.getElementById("todayIncomeCount").textContent = `${todayTotals.incomeCount} transaksi`;
   document.getElementById("todayExpenseCount").textContent = `${todayTotals.expenseCount} transaksi`;
-  document.getElementById("monthCashflow").textContent = `Cashflow bulan ini ${money(monthTotals.balance)}`;
+  document.getElementById("monthCashflow").textContent = `Bulan ini ${compactMoney(monthTotals.balance)}`;
   document.getElementById("syncStatus").textContent = state.settings.apiUrl
-    ? "Tersambung ke spreadsheet"
-    : "Mode demo lokal";
+    ? "Online"
+    : "Lokal";
 
   renderWeeklyChart(monthTransactions);
   renderMonthlyExpenseChart();
@@ -665,10 +666,10 @@ async function setupSpreadsheet() {
   if (state.busy.setup) return;
   try {
     setBusy("setup", true, "setupSheetButton", "Menyiapkan...");
-    setSyncStatus("Menyiapkan spreadsheet...");
+    setSyncStatus("Menyiapkan...");
     await apiRequest("setupSpreadsheet", {});
     showToast("Spreadsheet siap dipakai");
-    setSyncStatus("Spreadsheet siap");
+    setSyncStatus("Siap");
   } catch (error) {
     setSyncStatus("Setup gagal");
     showToast(getFriendlySyncError(error));
@@ -687,12 +688,12 @@ async function syncFromSheet(showSuccess) {
 
   try {
     setBusy("syncing", true, showSuccess ? "pullSheetButton" : "syncButton", "Mengambil...");
-    setSyncStatus("Sinkronisasi...");
+    setSyncStatus("Sync...");
     const data = await apiRequest("listTransactions", {});
     state.transactions = normalizeTransactions(data.transactions || []);
     saveTransactions();
     render();
-    setSyncStatus("Tersambung ke spreadsheet");
+    setSyncStatus("Online");
     if (showSuccess) showToast("Data spreadsheet diperbarui");
   } catch (error) {
     setSyncStatus("Sync gagal");
@@ -714,7 +715,7 @@ async function pushLocalToSheet() {
 
   try {
     setBusy("pushing", true, "pushSheetButton", "Backup...");
-    setSyncStatus("Mengirim data lokal...");
+    setSyncStatus("Backup...");
     await apiRequest("replaceTransactions", { transactions: state.transactions });
     await syncFromSheet(false);
     showToast("Data lokal dikirim ke spreadsheet");
