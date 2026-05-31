@@ -1218,17 +1218,35 @@ button:disabled {
 .form-grid input[type="date"] {
   display: block;
   width: 100%;
+  height: var(--tap);
   max-width: 100%;
   min-width: 0;
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: calc(var(--tap) - 4px);
   text-align: left;
   appearance: none;
   -webkit-appearance: none;
 }
 
 .form-grid input[type="date"]::-webkit-date-and-time-value {
+  display: flex;
+  align-items: center;
+  height: 100%;
   margin: 0;
   min-width: 0;
+  padding: 0;
+  line-height: normal;
   text-align: left;
+}
+
+.form-grid input[type="date"]::-webkit-datetime-edit,
+.form-grid input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0;
 }
 
 .form-grid input[type="date"]::-webkit-calendar-picker-indicator {
