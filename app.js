@@ -49,11 +49,6 @@ function init() {
   applySetupParamsFromUrl();
   state.transactions = loadTransactions();
 
-  if (state.transactions.length === 0) {
-    state.transactions = createDemoTransactions();
-    saveTransactions();
-  }
-
   state.selectedMonth = latestMonthKey(state.transactions) || toMonthKey(new Date());
 
   bindEvents();
@@ -700,6 +695,7 @@ function applySetupParamsFromUrl() {
   const tokenParam = params.get("token") || params.get("license");
   const owner = params.get("owner") || params.get("name");
   const budget = params.get("budget");
+  const hasSetupData = Boolean(apiUrl || tokenParam);
   let changed = false;
 
   if (apiUrl) {
@@ -726,7 +722,10 @@ function applySetupParamsFromUrl() {
     changed = true;
   }
 
-  if (changed) persistSettings();
+  if (changed) {
+    persistSettings();
+    if (hasSetupData) localStorage.removeItem(STORAGE_KEYS.transactions);
+  }
 
   const setupKeys = ["api", "apiUrl", "database", "token", "license", "owner", "name", "budget"];
   if (setupKeys.some((key) => params.has(key)) && window.history?.replaceState) {
@@ -1375,25 +1374,6 @@ function normalizeTransactions(transactions) {
       createdAt: item.createdAt || new Date().toISOString(),
       updatedAt: item.updatedAt || new Date().toISOString()
     }));
-}
-
-function createDemoTransactions() {
-  const now = new Date();
-  const date = (daysAgo) => {
-    const value = new Date(now);
-    value.setDate(now.getDate() - daysAgo);
-    return toDateKey(value);
-  };
-
-  return normalizeTransactions([
-    { id: "demo-1", date: date(0), type: "expense", category: "Makan", account: "E-Wallet", amount: 58000, note: "Lunch" },
-    { id: "demo-2", date: date(1), type: "expense", category: "Transport", account: "Cash", amount: 35000, note: "Bensin" },
-    { id: "demo-3", date: date(2), type: "income", category: "Jualan", account: "Bank", amount: 850000, note: "Order online" },
-    { id: "demo-4", date: date(3), type: "expense", category: "Belanja", account: "E-Wallet", amount: 240000, note: "Stok rumah" },
-    { id: "demo-5", date: date(5), type: "income", category: "Gaji", account: "Bank", amount: 6500000, note: "" },
-    { id: "demo-6", date: date(6), type: "expense", category: "Tagihan", account: "Bank", amount: 410000, note: "Internet" },
-    { id: "demo-7", date: date(8), type: "expense", category: "Hiburan", account: "Kartu Kredit", amount: 120000, note: "Streaming" }
-  ]);
 }
 
 function money(value) {

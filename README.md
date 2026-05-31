@@ -40,7 +40,7 @@ http://localhost:4173
 node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --api "https://script.google.com/macros/s/.../exec"
 ```
 
-Parameter `api` dan `token` akan disimpan otomatis lalu dibersihkan dari address bar.
+Parameter `api` dan `token` akan disimpan otomatis, transaksi lokal/demo lama di device itu akan dibersihkan, lalu parameter dibersihkan dari address bar.
 
 ## Aktivasi token pembeli
 
