@@ -1271,6 +1271,21 @@ button:disabled {
   gap: 10px;
 }
 
+.trial-meter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0 10px;
+  border: 2px solid rgba(21, 18, 20, 0.1);
+  border-radius: 999px;
+  color: #151214;
+  background: #f7fff4;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
 .mobile-fab,
 .bottom-nav {
   position: fixed;
@@ -1392,6 +1407,10 @@ button:disabled {
   color: var(--muted);
   line-height: 1.5;
   font-weight: 750;
+}
+
+.activation-card .trial-meter {
+  margin-top: 12px;
 }
 
 .transaction-modal::backdrop {

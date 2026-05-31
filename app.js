@@ -9,7 +9,10 @@ const DEFAULT_CATEGORIES = {
 };
 
 const DEFAULT_ACCOUNTS = ["Cash", "Bank", "E-Wallet", "Kartu Kredit"];
-const LICENSE_TOKEN_PATTERN = /^MD-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+const LICENSE_TOKEN_PATTERN = /^MD-([A-HJ-NP-Z2-9]{4})-([A-HJ-NP-Z2-9]{4})-([A-HJ-NP-Z2-9]{4})$/;
+const LICENSE_TOKEN_SECRET = "MYDOMPET-LIFETIME-2026";
+const TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const DEMO_TRANSACTION_LIMIT = 10;
 
 const VIEW_TITLES = {
   dashboard: "Dompet hari ini",
@@ -57,7 +60,6 @@ function init() {
   bindEvents();
   render();
   registerServiceWorker();
-  if (!isLicenseActive()) window.setTimeout(openActivationDialog, 250);
 
   if (state.settings.apiUrl) {
     syncFromSheet(false).catch(() => {
@@ -153,9 +155,7 @@ function bindEvents() {
   document.getElementById("activationForm").addEventListener("submit", (event) => {
     activateLicenseFromForm(event, "activationTokenInput");
   });
-  document.getElementById("activationDialog").addEventListener("cancel", (event) => {
-    if (!isLicenseActive()) event.preventDefault();
-  });
+  document.getElementById("closeActivationButton").addEventListener("click", closeActivationDialog);
   ["licenseKeyInput", "activationTokenInput"].forEach((id) => {
     document.getElementById(id).addEventListener("input", (event) => {
       event.target.value = formatLicenseToken(event.target.value);
@@ -381,6 +381,7 @@ function renderSettings() {
   document.getElementById("apiUrlInput").value = state.settings.apiUrl || "";
   document.getElementById("licenseKeyInput").value = state.settings.licenseKey || "";
   renderLicenseState();
+  renderDemoUsageState();
   renderCategoryManager();
 }
 
@@ -394,6 +395,17 @@ function renderLicenseState() {
   label.textContent = state.settings.licenseKey || "Belum ada token";
 }
 
+function renderDemoUsageState() {
+  const used = getDemoEntriesUsed();
+  const remaining = getDemoEntriesRemaining();
+  const text = isLicenseActive()
+    ? "Akses lifetime aktif"
+    : `Demo gratis ${used}/${DEMO_TRANSACTION_LIMIT} input terpakai, sisa ${remaining}`;
+
+  document.getElementById("trialStatusLabel").textContent = text;
+  document.getElementById("activationTrialLabel").textContent = text;
+}
+
 function activateLicenseFromForm(event, inputId) {
   event.preventDefault();
   const input = document.getElementById(inputId);
@@ -401,7 +413,7 @@ function activateLicenseFromForm(event, inputId) {
   input.value = token;
 
   if (!isLicenseTokenValid(token)) {
-    showToast("Token belum valid. Format: MD-ABCD-1234-EFGH");
+    showToast("Token belum valid. Pakai token dari seller.");
     input.focus();
     return;
   }
@@ -424,6 +436,7 @@ function openActivationDialog() {
 
   if (isLicenseActive() || dialog.open) return;
   input.value = state.settings.licenseKey || "";
+  renderDemoUsageState();
   dialog.showModal();
   input.focus();
 }
@@ -592,10 +605,17 @@ async function saveTransactionFromForm(event) {
 
   const id = document.getElementById("transactionId").value;
   const existing = state.transactions.find((item) => item.id === id);
+  const isCreating = !existing;
   const amount = numberFromInput(document.getElementById("amountInput").value);
 
   if (!amount || amount < 1) {
     showToast("Jumlah transaksi belum valid");
+    return;
+  }
+
+  if (isCreating && !isLicenseActive() && getDemoEntriesRemaining() <= 0) {
+    showToast("Demo gratis sudah habis. Masukkan token untuk lanjut.");
+    openActivationDialog();
     return;
   }
 
@@ -622,8 +642,9 @@ async function saveTransactionFromForm(event) {
       upsertLocalTransaction(transaction);
     }
 
+    if (isCreating && !isLicenseActive()) recordDemoEntry();
     closeTransactionModal(true);
-    showToast("Transaksi tersimpan");
+    showToast(existing ? "Transaksi diperbarui" : "Transaksi tersimpan");
     render();
   } catch (error) {
     showToast(getFriendlySyncError(error));
@@ -1214,7 +1235,11 @@ function isLicenseActive() {
 
 function isLicenseTokenValid(token) {
   const value = normalizeLicenseToken(token);
-  return value === "MD-LIFETIME-DEMO" || LICENSE_TOKEN_PATTERN.test(value);
+  const match = value.match(LICENSE_TOKEN_PATTERN);
+  if (!match) return false;
+
+  const payload = `${match[1]}${match[2]}`;
+  return match[3] === licenseChecksum(payload);
 }
 
 function normalizeLicenseToken(value) {
@@ -1228,6 +1253,42 @@ function formatLicenseToken(value) {
 
   if (!body) return raw.startsWith("MD") ? "MD-" : "";
   return ["MD", ...chunks].join("-");
+}
+
+function licenseChecksum(payload) {
+  let hash = 2166136261;
+  const source = `${LICENSE_TOKEN_SECRET}:${payload}`;
+
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+
+  let value = hash;
+  let checksum = "";
+  for (let index = 0; index < 4; index += 1) {
+    checksum += TOKEN_ALPHABET[value % TOKEN_ALPHABET.length];
+    value = Math.floor(value / TOKEN_ALPHABET.length);
+  }
+
+  return checksum;
+}
+
+function getDemoEntriesUsed() {
+  return Math.min(DEMO_TRANSACTION_LIMIT, Math.max(0, Number(state.settings.demoEntriesUsed || 0)));
+}
+
+function getDemoEntriesRemaining() {
+  return Math.max(0, DEMO_TRANSACTION_LIMIT - getDemoEntriesUsed());
+}
+
+function recordDemoEntry() {
+  state.settings = {
+    ...state.settings,
+    demoEntriesUsed: Math.min(DEMO_TRANSACTION_LIMIT, getDemoEntriesUsed() + 1)
+  };
+  persistSettings();
+  renderDemoUsageState();
 }
 
 function getCategories(type) {
@@ -1277,6 +1338,7 @@ function loadSettings() {
     apiUrl: "",
     licenseKey: "",
     activatedAt: "",
+    demoEntriesUsed: 0,
     categories: cloneDefaultCategories()
   };
 

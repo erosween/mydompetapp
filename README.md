@@ -41,11 +41,19 @@ http://localhost:4173
 
 Token dimasukkan pembeli saat pertama membuka app, atau lewat `Setting > Akses lifetime`.
 
-Format token MVP:
+Format token:
 
 ```text
-MD-ABCD-1234-EFGH
+MD-XXXX-XXXX-XXXX
 ```
+
+Token tidak lagi asal format saja. Buat token dari terminal seller, lalu catat bersama nama pembeli atau nomor invoice.
+
+```bash
+node scripts/generate-token.mjs "Nama pembeli / invoice"
+```
+
+Tanpa token, pembeli bisa mencoba app gratis sampai 10 input transaksi baru. Setelah limit habis, app akan meminta token lifetime untuk lanjut input transaksi.
 
 Alur jualan yang disarankan:
 
@@ -53,8 +61,10 @@ Alur jualan yang disarankan:
 2. Kita buatkan Google Sheet baru untuk pembeli.
 3. Kita pasang `backend/apps-script.gs` di Apps Script pembeli atau sheet yang kita siapkan.
 4. Kita deploy Web app dan paste URL `/exec` ke setting app.
-5. Kita isi token lifetime pembeli di `Setting > Akses lifetime`.
-6. Pembeli tinggal buka URL app, login token kalau belum diisi, lalu Add to Home Screen.
+5. Kita generate token lifetime dari terminal seller, lalu isi di `Setting > Akses lifetime`.
+6. Pembeli tinggal buka URL app dan Add to Home Screen.
+
+Catatan MVP: validasi token berjalan di frontend dan batas demo tersimpan di device user. Ini cukup untuk client awam di fase awal; kalau nanti volume penjualan sudah besar, naikkan ke registry token online supaya token dan limit demo bisa dikunci dari server.
 
 ## Packaging iOS dan Android
 
