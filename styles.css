@@ -589,6 +589,60 @@ button:disabled {
   white-space: nowrap;
 }
 
+.monthly-chart {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.month-expense-card {
+  display: grid;
+  min-width: 0;
+  min-height: 190px;
+  align-content: end;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid rgba(21, 18, 20, 0.08);
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
+.month-expense-card__bar {
+  display: grid;
+  align-items: end;
+  height: 104px;
+  overflow: hidden;
+  border: 2px solid rgba(21, 18, 20, 0.08);
+  border-radius: 18px;
+  background: #f2eadf;
+}
+
+.month-expense-card__bar span {
+  display: block;
+  min-height: 8px;
+  border-radius: 16px;
+}
+
+.month-expense-card strong,
+.month-expense-card small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.month-expense-card strong {
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  font-size: 1.05rem;
+}
+
+.month-expense-card small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
 .category-list,
 .transaction-list,
 .report-summary,
@@ -1192,6 +1246,18 @@ button:disabled {
 
   .metric-grid {
     gap: 10px;
+  }
+
+  .monthly-chart {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .month-expense-card {
+    min-height: 150px;
+  }
+
+  .month-expense-card__bar {
+    height: 76px;
   }
 
   .panel {

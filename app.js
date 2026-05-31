@@ -186,6 +186,7 @@ function renderDashboard() {
     : "Mode demo lokal";
 
   renderWeeklyChart(monthTransactions);
+  renderMonthlyExpenseChart();
   renderCategoryList(document.getElementById("categoryList"), monthTransactions, 5);
   renderTransactionRows(document.getElementById("recentTransactions"), sortTransactions(state.transactions).slice(0, 4));
 }
@@ -234,6 +235,34 @@ function renderWeeklyChart(transactions) {
         </div>
         <small>${shortDayLabel(day.key)}</small>
       </div>
+    `;
+  }).join("");
+}
+
+function renderMonthlyExpenseChart() {
+  const chart = document.getElementById("monthlyExpenseChart");
+  const months = getRecentMonthKeys(4);
+  const data = months.map((month) => {
+    const total = state.transactions
+      .filter((item) => item.type === "expense" && item.date && item.date.startsWith(month))
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    return { month, total };
+  });
+  const max = Math.max(...data.map((item) => item.total), 1);
+
+  chart.innerHTML = data.map((item, index) => {
+    const height = Math.max(item.total > 0 ? 18 : 8, Math.round((item.total / max) * 100));
+    const accent = ACCENTS[(index + 1) % ACCENTS.length];
+    return `
+      <article class="month-expense-card" title="${escapeHtml(`${monthLabel(item.month)} ${money(item.total)}`)}">
+        <div class="month-expense-card__bar">
+          <span style="height:${height}%; background:${accent}"></span>
+        </div>
+        <div>
+          <strong>${shortMonthName(item.month)}</strong>
+          <small>${money(item.total)}</small>
+        </div>
+      </article>
     `;
   }).join("");
 }
@@ -798,6 +827,14 @@ function toMonthKey(date) {
   return toDateKey(date).slice(0, 7);
 }
 
+function getRecentMonthKeys(count) {
+  const now = new Date();
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (count - 1 - index), 1);
+    return toMonthKey(date);
+  });
+}
+
 function latestMonthKey(transactions) {
   return sortTransactions(transactions)[0]?.date.slice(0, 7);
 }
@@ -811,6 +848,12 @@ function monthLabel(monthKey) {
 function dateLabel(dateKey) {
   return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" })
     .format(new Date(`${dateKey}T00:00:00`));
+}
+
+function shortMonthName(monthKey) {
+  const [year, month] = monthKey.split("-").map(Number);
+  return new Intl.DateTimeFormat("id-ID", { month: "short" })
+    .format(new Date(year, month - 1, 1));
 }
 
 function shortDayLabel(dateKey) {
