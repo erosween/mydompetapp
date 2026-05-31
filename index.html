@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=21">
+    <link rel="stylesheet" href="styles.css?v=22">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script defer src="app.js?v=21"></script>
+    <script defer src="app.js?v=22"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -46,9 +46,9 @@
         </nav>
 
         <div class="license-tile">
-          <span>Workspace</span>
+          <span>my dompet</span>
           <strong>Lifetime</strong>
-          <small>Spreadsheet connected</small>
+          <small>Demo 10 input gratis</small>
         </div>
       </aside>
 
@@ -264,17 +264,7 @@
                 Budget bulanan
                 <input id="monthlyBudgetInput" type="text" inputmode="numeric">
               </label>
-              <details class="admin-details">
-                <summary>
-                  <span>Koneksi database</span>
-                  <small>Area admin</small>
-                </summary>
-                <label>
-                  URL database spreadsheet
-                  <input id="apiUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec">
-                  <small class="field-help">Untuk client, bagian ini bisa kita isi saat setup. Mereka cukup pakai app dan kode akses.</small>
-                </label>
-              </details>
+              <input id="apiUrlInput" type="hidden">
               <button class="primary-action full" type="submit" id="saveSettingsButton">
                 <i data-lucide="save"></i>
                 <span>Simpan preferensi</span>
@@ -286,7 +276,7 @@
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Transaksi</p>
-                <h2>Kategori custom</h2>
+                <h2>Kategori transaksi</h2>
               </div>
             </div>
             <div class="category-manager">
@@ -319,29 +309,6 @@
                   </button>
                 </form>
               </div>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Database</p>
-                <h2>Workspace my dompet</h2>
-              </div>
-            </div>
-            <div class="sync-actions">
-              <button class="secondary-action" type="button" id="setupSheetButton">
-                <i data-lucide="table-properties"></i>
-                Siapkan
-              </button>
-              <button class="secondary-action" type="button" id="pullSheetButton">
-                <i data-lucide="cloud-download"></i>
-                Ambil
-              </button>
-              <button class="secondary-action" type="button" id="pushSheetButton">
-                <i data-lucide="cloud-upload"></i>
-                Backup
-              </button>
             </div>
           </section>
 

@@ -3,11 +3,60 @@
 const LICENSE_TOKEN_SECRET = "MYDOMPET-LIFETIME-2026";
 const TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-const buyer = process.argv.slice(2).join(" ").trim();
+const { buyer, options } = parseArgs(process.argv.slice(2));
 const token = createLicenseToken();
 
 console.log(token);
 if (buyer) console.log(`Buyer: ${buyer}`);
+if (options.app && options.api) console.log(`Setup link: ${createSetupLink(options.app, options.api, token, buyer, options)}`);
+
+function parseArgs(args) {
+  const options = {};
+  const buyerParts = [];
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    const next = args[index + 1];
+
+    if (arg.startsWith("--app=")) {
+      options.app = arg.slice(6);
+    } else if (arg === "--app" && next) {
+      options.app = next;
+      index += 1;
+    } else if (arg.startsWith("--api=")) {
+      options.api = arg.slice(6);
+    } else if (arg === "--api" && next) {
+      options.api = next;
+      index += 1;
+    } else if (arg.startsWith("--owner=")) {
+      options.owner = arg.slice(8);
+    } else if (arg === "--owner" && next) {
+      options.owner = next;
+      index += 1;
+    } else if (arg.startsWith("--budget=")) {
+      options.budget = arg.slice(9);
+    } else if (arg === "--budget" && next) {
+      options.budget = next;
+      index += 1;
+    } else {
+      buyerParts.push(arg);
+    }
+  }
+
+  return { buyer: buyerParts.join(" ").trim(), options };
+}
+
+function createSetupLink(appUrl, apiUrl, licenseToken, buyerName, options) {
+  const url = new URL(appUrl);
+  url.searchParams.set("api", apiUrl);
+  url.searchParams.set("token", licenseToken);
+
+  const owner = options.owner || buyerName;
+  if (owner) url.searchParams.set("owner", owner);
+  if (options.budget) url.searchParams.set("budget", options.budget);
+
+  return url.toString();
+}
 
 function createLicenseToken() {
   const payload = randomTokenText(8);

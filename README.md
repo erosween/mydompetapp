@@ -34,8 +34,13 @@ http://localhost:4173
 4. Klik `Deploy > New deployment`.
 5. Pilih `Web app`, akses `Anyone`.
 6. Copy URL `/exec`.
-7. Buka app `my dompet > Setting`, paste URL, lalu klik `Simpan setting`.
-8. Klik `Setup sheet`, lalu `Push lokal` kalau mau mengirim data demo/lokal.
+7. Buat link setup untuk device client dengan tool seller:
+
+```bash
+node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --api "https://script.google.com/macros/s/.../exec"
+```
+
+Parameter `api` dan `token` akan disimpan otomatis lalu dibersihkan dari address bar.
 
 ## Aktivasi token pembeli
 
@@ -53,6 +58,12 @@ Token tidak lagi asal format saja. Buat token dari terminal seller, lalu catat b
 node scripts/generate-token.mjs "Nama pembeli / invoice"
 ```
 
+Kalau URL Vercel dan Apps Script sudah ada, tool ini juga bisa langsung membuat setup link:
+
+```bash
+node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --api "https://script.google.com/macros/s/.../exec"
+```
+
 Tanpa token, pembeli bisa mencoba app gratis sampai 10 input transaksi baru. Setelah limit habis, app akan meminta token lifetime untuk lanjut input transaksi.
 
 Alur jualan yang disarankan:
@@ -60,9 +71,9 @@ Alur jualan yang disarankan:
 1. Pembeli transfer dan kirim email Google yang dipakai untuk spreadsheet.
 2. Kita buatkan Google Sheet baru untuk pembeli.
 3. Kita pasang `backend/apps-script.gs` di Apps Script pembeli atau sheet yang kita siapkan.
-4. Kita deploy Web app dan paste URL `/exec` ke setting app.
-5. Kita generate token lifetime dari terminal seller, lalu isi di `Setting > Akses lifetime`.
-6. Pembeli tinggal buka URL app dan Add to Home Screen.
+4. Kita deploy Web app dan copy URL `/exec`.
+5. Kita generate token lifetime dari terminal seller.
+6. Kita buka/kirim link setup berisi `api` dan `token`, lalu pembeli tinggal Add to Home Screen.
 
 Catatan MVP: validasi token berjalan di frontend dan batas demo tersimpan di device user. Ini cukup untuk client awam di fase awal; kalau nanti volume penjualan sudah besar, naikkan ke registry token online supaya token dan limit demo bisa dikunci dari server.
 

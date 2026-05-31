@@ -27,12 +27,15 @@ ID, Date, Type, Category, Account, Amount, Note, Created At, Updated At
 
 ## Hubungkan ke app
 
-1. Buka app `my dompet`.
-2. Masuk `Setting`.
-3. Paste URL Apps Script.
-4. Klik `Simpan setting`.
-5. Klik `Setup sheet`.
-6. Klik `Pull data` untuk membaca data spreadsheet atau `Push lokal` untuk mengirim data lokal.
+1. Generate token dan setup link dari terminal seller:
+
+```bash
+node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --api "https://script.google.com/macros/s/.../exec"
+```
+
+2. Buka setup link itu sekali di device client.
+3. App akan menyimpan koneksi database dan token, lalu menghapus parameter dari address bar.
+4. Client cukup memakai app dan Add to Home Screen.
 
 ## Catatan jualan one-purchase
 

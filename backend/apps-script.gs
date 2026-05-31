@@ -59,21 +59,28 @@ function setupSpreadsheet_() {
   const referenceSheet = ensureSheet_(spreadsheet, SHEET_REFERENCE, REFERENCE_HEADERS);
 
   if (referenceSheet.getLastRow() < 2) {
-    referenceSheet.getRange(2, 1, 14, 2).setValues([
+    referenceSheet.getRange(2, 1, 21, 2).setValues([
       ["expense", "Makan"],
       ["expense", "Transport"],
       ["expense", "Belanja"],
       ["expense", "Tagihan"],
-      ["expense", "Hiburan"],
+      ["expense", "Rumah"],
       ["expense", "Kesehatan"],
-      ["expense", "Bisnis"],
+      ["expense", "Hiburan"],
+      ["expense", "Pendidikan"],
+      ["expense", "Cicilan"],
+      ["expense", "Lainnya"],
       ["income", "Gaji"],
       ["income", "Bonus"],
       ["income", "Jualan"],
       ["income", "Freelance"],
+      ["income", "Transfer"],
+      ["income", "Investasi"],
+      ["income", "Lainnya"],
       ["account", "Cash"],
       ["account", "Bank"],
-      ["account", "E-Wallet"]
+      ["account", "E-Wallet"],
+      ["account", "Kartu Kredit"]
     ]);
   }
 

@@ -749,8 +749,7 @@ button:disabled {
 .category-list,
 .transaction-list,
 .report-summary,
-.account-grid,
-.sync-actions {
+.account-grid {
   display: grid;
   gap: 10px;
 }
@@ -1194,42 +1193,6 @@ button:disabled {
   border: 0;
 }
 
-.admin-details {
-  border: 2px dashed rgba(21, 18, 20, 0.18);
-  border-radius: var(--radius);
-  background: #f8f7ff;
-}
-
-.admin-details summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: var(--tap);
-  padding: 0 13px;
-  cursor: pointer;
-  font-weight: 950;
-}
-
-.admin-details summary::-webkit-details-marker {
-  display: none;
-}
-
-.admin-details summary small {
-  color: #8d5cf6;
-  font-size: 0.74rem;
-  font-weight: 950;
-  text-transform: uppercase;
-}
-
-.admin-details label {
-  padding: 0 13px 13px;
-}
-
-.sync-actions {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -1657,7 +1620,6 @@ button:disabled {
 
   .report-grid,
   .account-grid,
-  .sync-actions,
   .category-manager {
     grid-template-columns: 1fr;
   }

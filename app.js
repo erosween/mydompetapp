@@ -4,8 +4,8 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_CATEGORIES = {
-  expense: ["Makan", "Transport", "Belanja", "Tagihan", "Hiburan", "Kesehatan", "Bisnis"],
-  income: ["Gaji", "Bonus", "Jualan", "Freelance", "Investasi", "Lainnya"]
+  expense: ["Makan", "Transport", "Belanja", "Tagihan", "Rumah", "Kesehatan", "Hiburan", "Pendidikan", "Cicilan", "Lainnya"],
+  income: ["Gaji", "Bonus", "Jualan", "Freelance", "Transfer", "Investasi", "Lainnya"]
 };
 
 const DEFAULT_ACCOUNTS = ["Cash", "Bank", "E-Wallet", "Kartu Kredit"];
@@ -37,9 +37,7 @@ const state = {
     savingTransaction: false,
     deletingTransaction: false,
     savingSettings: false,
-    syncing: false,
-    setup: false,
-    pushing: false
+    syncing: false
   }
 };
 
@@ -48,6 +46,7 @@ let toastTimer;
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
+  applySetupParamsFromUrl();
   state.transactions = loadTransactions();
 
   if (state.transactions.length === 0) {
@@ -165,9 +164,6 @@ function bindEvents() {
     form.addEventListener("submit", addCategoryFromForm);
   });
   document.getElementById("syncButton").addEventListener("click", () => syncFromSheet(true));
-  document.getElementById("setupSheetButton").addEventListener("click", setupSpreadsheet);
-  document.getElementById("pullSheetButton").addEventListener("click", () => syncFromSheet(true));
-  document.getElementById("pushSheetButton").addEventListener("click", pushLocalToSheet);
   document.getElementById("exportExcelButton").addEventListener("click", exportExcel);
 }
 
@@ -697,6 +693,49 @@ function saveSettingsFromForm(event) {
   setBusy("savingSettings", false, "saveSettingsButton");
 }
 
+function applySetupParamsFromUrl() {
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
+  const apiUrl = params.get("api") || params.get("apiUrl") || params.get("database");
+  const tokenParam = params.get("token") || params.get("license");
+  const owner = params.get("owner") || params.get("name");
+  const budget = params.get("budget");
+  let changed = false;
+
+  if (apiUrl) {
+    state.settings.apiUrl = apiUrl.trim();
+    changed = true;
+  }
+
+  if (tokenParam) {
+    const token = formatLicenseToken(tokenParam);
+    if (isLicenseTokenValid(token)) {
+      state.settings.licenseKey = token;
+      state.settings.activatedAt = state.settings.activatedAt || new Date().toISOString();
+      changed = true;
+    }
+  }
+
+  if (owner) {
+    state.settings.userName = owner.trim() || state.settings.userName;
+    changed = true;
+  }
+
+  if (budget) {
+    state.settings.monthlyBudget = numberFromInput(budget);
+    changed = true;
+  }
+
+  if (changed) persistSettings();
+
+  const setupKeys = ["api", "apiUrl", "database", "token", "license", "owner", "name", "budget"];
+  if (setupKeys.some((key) => params.has(key)) && window.history?.replaceState) {
+    setupKeys.forEach((key) => params.delete(key));
+    const query = params.toString();
+    window.history.replaceState({}, "", `${url.pathname}${query ? `?${query}` : ""}${url.hash}`);
+  }
+}
+
 function addCategoryFromForm(event) {
   event.preventDefault();
 
@@ -749,32 +788,15 @@ function removeCategory(type, category) {
   showToast("Kategori dihapus");
 }
 
-async function setupSpreadsheet() {
-  if (state.busy.setup) return;
-  try {
-    setBusy("setup", true, "setupSheetButton", "Menyiapkan...");
-    setSyncStatus("Menyiapkan...");
-    await apiRequest("setupSpreadsheet", {});
-    showToast("Spreadsheet siap dipakai");
-    setSyncStatus("Siap");
-  } catch (error) {
-    setSyncStatus("Setup gagal");
-    showToast(getFriendlySyncError(error));
-  } finally {
-    setBusy("setup", false, "setupSheetButton");
-  }
-}
-
 async function syncFromSheet(showSuccess) {
   if (state.busy.syncing) return;
   if (!state.settings.apiUrl) {
-    showToast("Isi URL Apps Script dulu");
-    setView("settings");
+    showToast("Database belum disiapkan");
     return;
   }
 
   try {
-    setBusy("syncing", true, showSuccess ? "pullSheetButton" : "syncButton", "Mengambil...");
+    setBusy("syncing", true, "syncButton", "Mengambil...");
     setSyncStatus("Sync...");
     const data = await apiRequest("listTransactions", {});
     state.transactions = normalizeTransactions(data.transactions || []);
@@ -787,30 +809,7 @@ async function syncFromSheet(showSuccess) {
     if (showSuccess) showToast(getFriendlySyncError(error));
     throw error;
   } finally {
-    setBusy("syncing", false, "pullSheetButton");
     setBusy("syncing", false, "syncButton");
-  }
-}
-
-async function pushLocalToSheet() {
-  if (state.busy.pushing) return;
-  if (!state.settings.apiUrl) {
-    showToast("Isi URL Apps Script dulu");
-    setView("settings");
-    return;
-  }
-
-  try {
-    setBusy("pushing", true, "pushSheetButton", "Backup...");
-    setSyncStatus("Backup...");
-    await apiRequest("replaceTransactions", { transactions: state.transactions });
-    await syncFromSheet(false);
-    showToast("Data lokal dikirim ke spreadsheet");
-  } catch (error) {
-    setSyncStatus("Push gagal");
-    showToast(getFriendlySyncError(error));
-  } finally {
-    setBusy("pushing", false, "pushSheetButton");
   }
 }
 
