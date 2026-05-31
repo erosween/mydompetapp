@@ -331,6 +331,10 @@ function renderTransactionRows(container, transactions) {
     const sign = item.type === "income" ? "+" : "-";
     const icon = item.type === "income" ? "arrow-down-left" : "arrow-up-right";
     const accent = item.type === "income" ? "#41e3bd" : categoryAccent(item.category);
+    const title = item.note || item.category;
+    const meta = item.note
+      ? `${item.category} · ${item.account} · ${dateLabel(item.date)}`
+      : `${item.account} · ${dateLabel(item.date)}`;
     return `
       <article class="transaction-row">
         <div class="transaction-main">
@@ -338,8 +342,8 @@ function renderTransactionRows(container, transactions) {
             <i data-lucide="${icon}"></i>
           </span>
           <div class="transaction-copy">
-            <strong>${escapeHtml(item.category)}</strong>
-            <small>${escapeHtml(item.account)} · ${dateLabel(item.date)}${item.note ? ` · ${escapeHtml(item.note)}` : ""}</small>
+            <strong>${escapeHtml(title)}</strong>
+            <small>${escapeHtml(meta)}</small>
           </div>
         </div>
         <div class="transaction-amount ${item.type}">

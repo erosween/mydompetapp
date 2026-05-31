@@ -519,6 +519,8 @@ button:disabled {
 .amount-field input,
 .search-field input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: var(--tap);
   border: 2px solid rgba(21, 18, 20, 0.12);
   border-radius: var(--radius);
@@ -677,6 +679,13 @@ button:disabled {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.transaction-copy strong {
+  display: -webkit-box;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .transaction-copy small {
@@ -1048,6 +1057,30 @@ button:disabled {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.form-grid label {
+  min-width: 0;
+}
+
+.form-grid input[type="date"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.form-grid input[type="date"]::-webkit-date-and-time-value {
+  margin: 0;
+  min-width: 0;
+  text-align: left;
+}
+
+.form-grid input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-left: auto;
 }
 
 .modal-actions {

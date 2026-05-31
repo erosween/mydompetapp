@@ -1,9 +1,9 @@
-const CACHE_NAME = "my-dompet-v7";
+const CACHE_NAME = "my-dompet-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=7",
-  "./app.js?v=7",
+  "./styles.css?v=8",
+  "./app.js?v=8",
   "./manifest.webmanifest",
   "./assets/icon.svg",
   "https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"
