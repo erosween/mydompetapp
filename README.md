@@ -64,6 +64,9 @@ Kalau URL Vercel dan Apps Script sudah ada, tool ini juga bisa langsung membuat 
 node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --api "https://script.google.com/macros/s/.../exec"
 ```
 
+Saat `--api` diisi, tool juga memperbarui `license-registry.json`. Setelah file itu dipush/deploy, user yang hanya memasukkan token bisa otomatis tersambung ke spreadsheet yang benar.
+Jangan lupa commit dan push `license-registry.json` setiap selesai generate token baru supaya Vercel ikut membawa mapping token tersebut.
+
 Tambahkan `--keep-data` kalau setup link dipakai untuk client lama dan data spreadsheet tidak boleh dihapus.
 
 Tanpa token, pembeli bisa mencoba app gratis sampai 10 input transaksi baru. Setelah limit habis, app akan meminta token lifetime untuk lanjut input transaksi.

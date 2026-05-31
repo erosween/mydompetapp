@@ -11,6 +11,8 @@ const DEFAULT_CATEGORIES = {
 const DEFAULT_ACCOUNTS = ["Cash", "Bank", "E-Wallet", "Kartu Kredit"];
 const LICENSE_TOKEN_PATTERN = /^MD-([A-HJ-NP-Z2-9]{4})-([A-HJ-NP-Z2-9]{4})-([A-HJ-NP-Z2-9]{4})$/;
 const LICENSE_TOKEN_SECRET = "MYDOMPET-LIFETIME-2026";
+const LICENSE_REGISTRY_SECRET = "MYDOMPET-REGISTRY-2026";
+const LICENSE_REGISTRY_URL = "license-registry.json";
 const TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const DEMO_TRANSACTION_LIMIT = 10;
 
@@ -37,6 +39,7 @@ const state = {
     savingTransaction: false,
     deletingTransaction: false,
     savingSettings: false,
+    activatingLicense: false,
     syncing: false
   }
 };
@@ -399,9 +402,12 @@ function renderDemoUsageState() {
   document.getElementById("activationTrialLabel").textContent = text;
 }
 
-function activateLicenseFromForm(event, inputId) {
+async function activateLicenseFromForm(event, inputId) {
   event.preventDefault();
+  if (state.busy.activatingLicense) return;
+
   const input = document.getElementById(inputId);
+  const buttonId = inputId === "licenseKeyInput" ? "activateLicenseButton" : "activateDialogButton";
   const token = formatLicenseToken(input.value);
   input.value = token;
 
@@ -411,16 +417,42 @@ function activateLicenseFromForm(event, inputId) {
     return;
   }
 
-  state.settings = {
-    ...state.settings,
-    licenseKey: token,
-    activatedAt: state.settings.activatedAt || new Date().toISOString()
-  };
+  setBusy("activatingLicense", true, buttonId, "Aktivasi...");
 
-  persistSettings();
-  renderSettings();
-  closeActivationDialog();
-  showToast("Token lifetime aktif");
+  try {
+    const registryData = await resolveLicenseRegistry(token);
+    const nextApiUrl = registryData?.apiUrl || state.settings.apiUrl;
+    const apiChanged = Boolean(registryData?.apiUrl && registryData.apiUrl !== state.settings.apiUrl);
+
+    state.settings = {
+      ...state.settings,
+      apiUrl: nextApiUrl,
+      userName: registryData?.owner || state.settings.userName,
+      monthlyBudget: registryData?.budget ? numberFromInput(registryData.budget) : state.settings.monthlyBudget,
+      licenseKey: token,
+      activatedAt: state.settings.activatedAt || new Date().toISOString()
+    };
+
+    persistSettings();
+
+    if (apiChanged) {
+      state.transactions = [];
+      saveTransactions();
+      render();
+      try {
+        await syncFromSheet(false);
+      } catch {
+        setSyncStatus("Offline");
+      }
+    } else {
+      renderSettings();
+    }
+
+    closeActivationDialog();
+    showToast(registryData?.apiUrl ? "Token aktif, spreadsheet tersambung" : "Token lifetime aktif");
+  } finally {
+    setBusy("activatingLicense", false, buttonId);
+  }
 }
 
 function openActivationDialog() {
@@ -1300,6 +1332,30 @@ function isLicenseTokenValid(token) {
   return match[3] === licenseChecksum(payload);
 }
 
+async function resolveLicenseRegistry(token) {
+  if (!globalThis.crypto?.subtle) return null;
+
+  try {
+    const response = await fetch(`${LICENSE_REGISTRY_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return null;
+
+    const registry = await response.json();
+    const entry = registry.tokens?.[await registryLookupKey(token)];
+    if (!entry?.iv || !entry?.data) return null;
+
+    const key = await registryCryptoKey(token);
+    const decrypted = await globalThis.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: base64UrlToBytes(entry.iv) },
+      key,
+      base64UrlToBytes(entry.data)
+    );
+
+    return JSON.parse(new TextDecoder().decode(decrypted));
+  } catch {
+    return null;
+  }
+}
+
 function normalizeLicenseToken(value) {
   return String(value || "").trim().toUpperCase();
 }
@@ -1330,6 +1386,38 @@ function licenseChecksum(payload) {
   }
 
   return checksum;
+}
+
+async function registryLookupKey(token) {
+  return bytesToBase64Url(await digestBytes(`lookup:${LICENSE_REGISTRY_SECRET}:${normalizeLicenseToken(token)}`));
+}
+
+async function registryCryptoKey(token) {
+  const raw = await digestBytes(`key:${LICENSE_REGISTRY_SECRET}:${normalizeLicenseToken(token)}`);
+  return globalThis.crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
+}
+
+async function digestBytes(text) {
+  return new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+}
+
+function bytesToBase64Url(bytes) {
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function base64UrlToBytes(value) {
+  const base64 = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
 function getDemoEntriesUsed() {
