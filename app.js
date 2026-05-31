@@ -85,6 +85,12 @@ function bindEvents() {
     const removeButton = event.target.closest("[data-remove]");
     if (removeButton) {
       deleteTransaction(removeButton.dataset.remove);
+      return;
+    }
+
+    const removeCategoryButton = event.target.closest("[data-remove-category]");
+    if (removeCategoryButton) {
+      removeCategory(removeCategoryButton.dataset.categoryType, removeCategoryButton.dataset.removeCategory);
     }
   });
 
@@ -125,6 +131,9 @@ function bindEvents() {
   });
 
   document.getElementById("settingsForm").addEventListener("submit", saveSettingsFromForm);
+  document.querySelectorAll("[data-category-form]").forEach((form) => {
+    form.addEventListener("submit", addCategoryFromForm);
+  });
   document.getElementById("syncButton").addEventListener("click", () => syncFromSheet(true));
   document.getElementById("setupSheetButton").addEventListener("click", setupSpreadsheet);
   document.getElementById("pullSheetButton").addEventListener("click", () => syncFromSheet(true));
@@ -304,6 +313,23 @@ function renderSettings() {
   document.getElementById("monthlyBudgetInput").value = formatInputNumber(String(state.settings.monthlyBudget || ""));
   document.getElementById("apiUrlInput").value = state.settings.apiUrl || "";
   document.getElementById("licenseKeyLabel").textContent = state.settings.licenseKey || "MD-LIFETIME-DEMO";
+  renderCategoryManager();
+}
+
+function renderCategoryManager() {
+  ["expense", "income"].forEach((type) => {
+    const categories = getCategories(type);
+    const list = document.getElementById(`${type}CategoryList`);
+    const count = document.getElementById(`${type}CategoryCount`);
+
+    count.textContent = `${categories.length} kategori`;
+    list.innerHTML = categories.map((category) => `
+      <button class="category-chip" type="button" data-category-type="${type}" data-remove-category="${escapeHtml(category)}" aria-label="Hapus kategori ${escapeHtml(category)}">
+        <span>${escapeHtml(category)}</span>
+        <i data-lucide="x"></i>
+      </button>
+    `).join("");
+  });
 }
 
 function renderCategoryList(container, transactions, limit) {
@@ -423,10 +449,15 @@ function setFormType(type, selectedCategory) {
   });
 
   const categoryInput = document.getElementById("categoryInput");
-  categoryInput.innerHTML = DEFAULT_CATEGORIES[type].map((category) => {
+  let categories = getCategories(type);
+  if (selectedCategory && !categories.some((category) => category.toLowerCase() === selectedCategory.toLowerCase())) {
+    categories = [selectedCategory, ...categories];
+  }
+
+  categoryInput.innerHTML = categories.map((category) => {
     return `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`;
   }).join("");
-  categoryInput.value = selectedCategory || DEFAULT_CATEGORIES[type][0];
+  categoryInput.value = selectedCategory || categories[0];
 }
 
 async function saveTransactionFromForm(event) {
@@ -513,10 +544,62 @@ function saveSettingsFromForm(event) {
     apiUrl: document.getElementById("apiUrlInput").value.trim()
   };
 
-  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
+  persistSettings();
   showToast("Setting tersimpan");
   render();
   setBusy("savingSettings", false, "saveSettingsButton");
+}
+
+function addCategoryFromForm(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const type = form.dataset.categoryType;
+  const input = form.querySelector("input");
+  const category = normalizeCategoryName(input.value);
+  const categories = getCategories(type);
+
+  if (!category) {
+    showToast("Nama kategori belum diisi");
+    return;
+  }
+
+  if (categories.some((item) => item.toLowerCase() === category.toLowerCase())) {
+    showToast("Kategori sudah ada");
+    return;
+  }
+
+  state.settings.categories = {
+    ...state.settings.categories,
+    [type]: [...categories, category]
+  };
+
+  persistSettings();
+  input.value = "";
+  renderCategoryManager();
+  setFormType(state.formType);
+  refreshIcons();
+  showToast("Kategori ditambahkan");
+}
+
+function removeCategory(type, category) {
+  const categories = getCategories(type);
+
+  if (categories.length <= 1) {
+    showToast("Minimal satu kategori");
+    return;
+  }
+
+  state.settings.categories = {
+    ...state.settings.categories,
+    [type]: categories.filter((item) => item !== category)
+  };
+
+  persistSettings();
+  renderCategoryManager();
+  setFormType(state.formType);
+  refreshIcons();
+  showToast("Kategori dihapus");
 }
 
 async function setupSpreadsheet() {
@@ -736,16 +819,58 @@ function sortTransactions(transactions) {
   });
 }
 
+function getCategories(type) {
+  return normalizeCategoryList(state.settings.categories?.[type], DEFAULT_CATEGORIES[type]);
+}
+
+function cloneDefaultCategories() {
+  return {
+    expense: [...DEFAULT_CATEGORIES.expense],
+    income: [...DEFAULT_CATEGORIES.income]
+  };
+}
+
+function normalizeCategories(categories) {
+  return {
+    expense: normalizeCategoryList(categories?.expense, DEFAULT_CATEGORIES.expense),
+    income: normalizeCategoryList(categories?.income, DEFAULT_CATEGORIES.income)
+  };
+}
+
+function normalizeCategoryList(list, fallback) {
+  const source = Array.isArray(list) && list.length > 0 ? list : fallback;
+  const normalized = [];
+
+  source.forEach((item) => {
+    const category = normalizeCategoryName(item);
+    if (category && !normalized.some((current) => current.toLowerCase() === category.toLowerCase())) {
+      normalized.push(category);
+    }
+  });
+
+  return normalized.length > 0 ? normalized : ["Lainnya"];
+}
+
+function normalizeCategoryName(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function persistSettings() {
+  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
+}
+
 function loadSettings() {
   const fallback = {
     userName: "Owner",
     monthlyBudget: 5000000,
     apiUrl: "",
-    licenseKey: "MD-LIFETIME-DEMO"
+    licenseKey: "MD-LIFETIME-DEMO",
+    categories: cloneDefaultCategories()
   };
 
   try {
-    return { ...fallback, ...JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || "{}") };
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || "{}");
+    return { ...fallback, ...saved, categories: normalizeCategories(saved.categories) };
   } catch {
     return fallback;
   }

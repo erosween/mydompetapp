@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=9">
+    <link rel="stylesheet" href="styles.css?v=10">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script defer src="app.js?v=9"></script>
+    <script defer src="app.js?v=10"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -238,6 +238,46 @@
                 <span>Simpan preferensi</span>
               </button>
             </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Transaksi</p>
+                <h2>Kategori custom</h2>
+              </div>
+            </div>
+            <div class="category-manager">
+              <div class="category-manager__group">
+                <div class="category-manager__header">
+                  <strong>Pengeluaran</strong>
+                  <small id="expenseCategoryCount">0 kategori</small>
+                </div>
+                <div class="category-chip-list" id="expenseCategoryList"></div>
+                <form class="category-add-form" data-category-form data-category-type="expense">
+                  <label class="visually-hidden" for="expenseCategoryInput">Tambah kategori pengeluaran</label>
+                  <input id="expenseCategoryInput" type="text" placeholder="Tambah kategori keluar" autocomplete="off">
+                  <button class="icon-button" type="submit" aria-label="Tambah kategori pengeluaran">
+                    <i data-lucide="plus"></i>
+                  </button>
+                </form>
+              </div>
+
+              <div class="category-manager__group">
+                <div class="category-manager__header">
+                  <strong>Pemasukan</strong>
+                  <small id="incomeCategoryCount">0 kategori</small>
+                </div>
+                <div class="category-chip-list" id="incomeCategoryList"></div>
+                <form class="category-add-form" data-category-form data-category-type="income">
+                  <label class="visually-hidden" for="incomeCategoryInput">Tambah kategori pemasukan</label>
+                  <input id="incomeCategoryInput" type="text" placeholder="Tambah kategori masuk" autocomplete="off">
+                  <button class="icon-button" type="submit" aria-label="Tambah kategori pemasukan">
+                    <i data-lucide="plus"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
           </section>
 
           <section class="panel">

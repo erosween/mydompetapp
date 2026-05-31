@@ -514,6 +514,7 @@ button:disabled {
 .toolbar select,
 .settings-form input,
 .settings-form select,
+.category-add-form input,
 .form-grid input,
 .form-grid select,
 .amount-field input,
@@ -539,6 +540,7 @@ button:disabled {
 .panel select:focus,
 .toolbar select:focus,
 .settings-form input:focus,
+.category-add-form input:focus,
 .form-grid input:focus,
 .form-grid select:focus,
 .amount-field input:focus,
@@ -913,10 +915,106 @@ button:disabled {
 }
 
 .settings-form input,
+.category-add-form input,
 .form-grid input,
 .form-grid select,
 .amount-field input {
   padding: 0 13px;
+}
+
+.category-manager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.category-manager__group {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.category-manager__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.category-manager__header strong {
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  font-size: 1.05rem;
+}
+
+.category-manager__header small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.category-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 38px;
+  gap: 7px;
+  padding: 0 10px 0 12px;
+  border: 2px solid rgba(21, 18, 20, 0.1);
+  border-radius: 999px;
+  color: #151214;
+  background: #fff4df;
+  font-weight: 900;
+}
+
+.category-chip:nth-child(3n + 2) {
+  background: #f0f5ff;
+}
+
+.category-chip:nth-child(3n) {
+  background: #f7fff4;
+}
+
+.category-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-chip svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  stroke-width: 2.6px;
+}
+
+.category-add-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--tap);
+  gap: 8px;
+}
+
+.category-add-form .icon-button {
+  width: var(--tap);
+  height: var(--tap);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .admin-details {
@@ -1214,7 +1312,8 @@ button:disabled {
   .metric-grid,
   .report-grid,
   .account-grid,
-  .sync-actions {
+  .sync-actions,
+  .category-manager {
     grid-template-columns: 1fr;
   }
 
