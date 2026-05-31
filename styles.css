@@ -1386,12 +1386,61 @@ button:disabled {
     display: none;
   }
 
-  .metric-grid,
   .report-grid,
   .account-grid,
   .sync-actions,
   .category-manager {
     grid-template-columns: 1fr;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 10px 0 0;
+  }
+
+  .metric-card,
+  .today-card {
+    min-height: 94px;
+    gap: 6px;
+    padding: 11px 10px;
+  }
+
+  .metric-card span,
+  .today-card span {
+    gap: 5px;
+    font-size: 0.64rem;
+    line-height: 1.15;
+  }
+
+  .metric-card strong {
+    overflow: hidden;
+    font-size: clamp(0.98rem, 4.15vw, 1.18rem);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .metric-card small,
+  .today-card small {
+    overflow: hidden;
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .today-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .today-card strong {
+    font-size: clamp(1.05rem, 5.3vw, 1.35rem);
+  }
+
+  .today-card svg {
+    width: 16px;
+    height: 16px;
   }
 
   .report-grid .wide {
@@ -1418,15 +1467,6 @@ button:disabled {
 
   .balance-card__top strong {
     font-size: 2.5rem;
-  }
-
-  .metric-grid {
-    gap: 10px;
-  }
-
-  .today-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
   }
 
   .monthly-chart {

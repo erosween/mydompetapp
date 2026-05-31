@@ -184,14 +184,14 @@ function renderDashboard() {
   const budgetRatio = budget > 0 ? Math.min(999, Math.round((monthTotals.expense / budget) * 100)) : 0;
 
   document.getElementById("balanceAmount").textContent = money(allTotals.balance);
-  document.getElementById("incomeAmount").textContent = money(monthTotals.income);
-  document.getElementById("expenseAmount").textContent = money(monthTotals.expense);
+  document.getElementById("incomeAmount").textContent = compactMoney(monthTotals.income);
+  document.getElementById("expenseAmount").textContent = compactMoney(monthTotals.expense);
   document.getElementById("budgetPercent").textContent = `${budgetRatio}%`;
-  document.getElementById("budgetAmount").textContent = `${money(monthTotals.expense)} dari ${money(budget)}`;
+  document.getElementById("budgetAmount").textContent = `${compactMoney(monthTotals.expense)} / ${compactMoney(budget)}`;
   document.getElementById("incomeCount").textContent = `${monthTotals.incomeCount} transaksi`;
   document.getElementById("expenseCount").textContent = `${monthTotals.expenseCount} transaksi`;
-  document.getElementById("todayIncomeAmount").textContent = money(todayTotals.income);
-  document.getElementById("todayExpenseAmount").textContent = money(todayTotals.expense);
+  document.getElementById("todayIncomeAmount").textContent = compactMoney(todayTotals.income);
+  document.getElementById("todayExpenseAmount").textContent = compactMoney(todayTotals.expense);
   document.getElementById("todayIncomeCount").textContent = `${todayTotals.incomeCount} transaksi`;
   document.getElementById("todayExpenseCount").textContent = `${todayTotals.expenseCount} transaksi`;
   document.getElementById("monthCashflow").textContent = `Cashflow bulan ini ${money(monthTotals.balance)}`;
