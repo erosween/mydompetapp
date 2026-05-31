@@ -66,6 +66,7 @@ node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --ap
 
 Saat `--api` diisi, tool juga memperbarui `license-registry.json`. Setelah file itu dipush/deploy, user yang hanya memasukkan token bisa otomatis tersambung ke spreadsheet yang benar.
 Jangan lupa commit dan push `license-registry.json` setiap selesai generate token baru supaya Vercel ikut membawa mapping token tersebut.
+Field URL Web App spreadsheet disembunyikan dari client. Kalau butuh mode admin manual, buka app dengan `?admin=1`.
 
 Tambahkan `--keep-data` kalau setup link dipakai untuk client lama dan data spreadsheet tidak boleh dihapus.
 

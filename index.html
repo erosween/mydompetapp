@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=26">
+    <link rel="stylesheet" href="styles.css?v=27">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script defer src="app.js?v=26"></script>
+    <script defer src="app.js?v=27"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -264,15 +264,17 @@
                 Budget bulanan
                 <input id="monthlyBudgetInput" type="text" inputmode="numeric">
               </label>
-              <label class="database-field">
-                URL Web App spreadsheet
-                <input id="apiUrlInput" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec">
-                <small class="field-help">Isi URL Apps Script dari spreadsheet client. Kalau URL diganti, app akan pindah ke database itu.</small>
-              </label>
-              <label class="check-option">
-                <input id="resetDatabaseOnSave" type="checkbox" checked>
-                <span>Mulai dari database kosong</span>
-              </label>
+              <div class="admin-setting" id="databaseSettingPanel" hidden>
+                <label class="database-field">
+                  URL Web App spreadsheet
+                  <input id="apiUrlInput" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec">
+                  <small class="field-help">Area admin. Kalau token registry aktif, client tidak perlu mengisi ini.</small>
+                </label>
+                <label class="check-option">
+                  <input id="resetDatabaseOnSave" type="checkbox" checked>
+                  <span>Mulai dari database kosong</span>
+                </label>
+              </div>
               <button class="primary-action full" type="submit" id="saveSettingsButton">
                 <i data-lucide="save"></i>
                 <span>Simpan preferensi</span>

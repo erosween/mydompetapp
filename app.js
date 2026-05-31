@@ -376,6 +376,7 @@ function renderSettings() {
   document.getElementById("monthlyBudgetInput").value = formatInputNumber(String(state.settings.monthlyBudget || ""));
   document.getElementById("apiUrlInput").value = state.settings.apiUrl || "";
   document.getElementById("licenseKeyInput").value = state.settings.licenseKey || "";
+  document.getElementById("databaseSettingPanel").hidden = !isAdminMode();
   renderLicenseState();
   renderDemoUsageState();
   renderCategoryManager();
@@ -709,10 +710,13 @@ async function saveSettingsFromForm(event) {
   if (state.busy.savingSettings) return;
   setBusy("savingSettings", true, "saveSettingsButton", "Menyimpan...");
 
+  const adminMode = isAdminMode();
   const previousApiUrl = state.settings.apiUrl || "";
-  const nextApiUrl = document.getElementById("apiUrlInput").value.trim();
+  const nextApiUrl = adminMode
+    ? document.getElementById("apiUrlInput").value.trim()
+    : previousApiUrl;
   const apiChanged = previousApiUrl !== nextApiUrl;
-  const resetDatabase = apiChanged && nextApiUrl && document.getElementById("resetDatabaseOnSave").checked;
+  const resetDatabase = adminMode && apiChanged && nextApiUrl && document.getElementById("resetDatabaseOnSave").checked;
 
   state.settings = {
     ...state.settings,
@@ -810,6 +814,10 @@ function hasTruthySetupParam(params, keys) {
     if (value === null) return false;
     return value === "" || ["1", "true", "yes", "fresh"].includes(value.toLowerCase());
   });
+}
+
+function isAdminMode() {
+  return hasTruthySetupParam(new URLSearchParams(window.location.search), ["admin"]);
 }
 
 async function resetFreshSetupData() {

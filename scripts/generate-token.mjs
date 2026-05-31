@@ -22,6 +22,7 @@ console.log(token);
 if (buyer) console.log(`Buyer: ${buyer}`);
 if (options.app && options.api) console.log(`Setup link: ${createSetupLink(options.app, options.api, token, buyer, options)}`);
 if (options.api) console.log("Registry: license-registry.json updated");
+if (options.api) console.log('Next: git add license-registry.json && git commit -m "Add license token" && git push origin main');
 
 function parseArgs(args) {
   const options = { fresh: true };
