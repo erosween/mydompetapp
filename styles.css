@@ -857,12 +857,13 @@ button:disabled {
 
 .toolbar {
   align-items: stretch;
+  flex-wrap: wrap;
   margin-bottom: 14px;
 }
 
 .search-field {
   position: relative;
-  flex: 1;
+  flex: 1 1 280px;
 }
 
 .search-field svg {
@@ -877,9 +878,80 @@ button:disabled {
   padding: 0 14px 0 44px;
 }
 
+.toolbar-filters {
+  display: flex;
+  flex: 0 1 340px;
+  gap: 10px;
+}
+
 .toolbar select {
-  flex: 0 0 150px;
+  flex: 1 1 0;
   max-width: none;
+}
+
+.sort-strip {
+  display: flex;
+  align-items: center;
+  flex: 1 1 100%;
+  gap: 7px;
+  min-width: 0;
+  padding: 6px;
+  overflow-x: auto;
+  border: 2px solid rgba(21, 18, 20, 0.1);
+  border-radius: var(--radius);
+  background: #ffffff;
+  scrollbar-width: none;
+}
+
+.sort-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.sort-strip > span {
+  flex: 0 0 auto;
+  padding: 0 7px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.sort-strip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  flex: 1 0 120px;
+  gap: 7px;
+  padding: 0 12px;
+  border: 2px solid transparent;
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--muted);
+  background: transparent;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.sort-strip button.is-active {
+  color: #151214;
+  border-color: #151214;
+  background: #baff5a;
+  box-shadow: 3px 3px 0 #151214;
+}
+
+.sort-strip svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  stroke-width: 2.7px;
+}
+
+.transaction-month-divider {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
 }
 
 .report-grid {
@@ -1496,11 +1568,33 @@ button:disabled {
 
   .toolbar {
     display: grid;
+    gap: 10px;
+  }
+
+  .toolbar-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .toolbar select {
     width: 100%;
     flex-basis: auto;
+  }
+
+  .sort-strip {
+    gap: 6px;
+    padding: 5px;
+  }
+
+  .sort-strip > span {
+    padding: 0 5px;
+  }
+
+  .sort-strip button {
+    min-height: 38px;
+    flex-basis: auto;
+    padding: 0 9px;
   }
 
   .transaction-row {

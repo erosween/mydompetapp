@@ -26,6 +26,8 @@ const state = {
   selectedMonth: toMonthKey(new Date()),
   search: "",
   typeFilter: "all",
+  transactionMonth: "all",
+  transactionSort: "latest",
   formType: "expense",
   busy: {
     savingTransaction: false,
@@ -91,6 +93,13 @@ function bindEvents() {
     const removeCategoryButton = event.target.closest("[data-remove-category]");
     if (removeCategoryButton) {
       removeCategory(removeCategoryButton.dataset.categoryType, removeCategoryButton.dataset.removeCategory);
+      return;
+    }
+
+    const sortButton = event.target.closest("[data-sort-option]");
+    if (sortButton) {
+      state.transactionSort = sortButton.dataset.sortOption;
+      renderTransactionsView();
     }
   });
 
@@ -130,6 +139,11 @@ function bindEvents() {
     renderTransactionsView();
   });
 
+  document.getElementById("transactionMonthFilter").addEventListener("change", (event) => {
+    state.transactionMonth = event.target.value;
+    renderTransactionsView();
+  });
+
   document.getElementById("settingsForm").addEventListener("submit", saveSettingsFromForm);
   document.querySelectorAll("[data-category-form]").forEach((form) => {
     form.addEventListener("submit", addCategoryFromForm);
@@ -138,7 +152,7 @@ function bindEvents() {
   document.getElementById("setupSheetButton").addEventListener("click", setupSpreadsheet);
   document.getElementById("pullSheetButton").addEventListener("click", () => syncFromSheet(true));
   document.getElementById("pushSheetButton").addEventListener("click", pushLocalToSheet);
-  document.getElementById("exportCsvButton").addEventListener("click", exportCsv);
+  document.getElementById("exportExcelButton").addEventListener("click", exportExcel);
 }
 
 function render() {
@@ -150,6 +164,7 @@ function render() {
 
   document.getElementById("screenTitle").textContent = VIEW_TITLES[state.view];
   renderMonthSelector();
+  renderTransactionMonthFilter();
   renderDashboard();
   renderTransactionsView();
   renderReports();
@@ -223,6 +238,31 @@ function renderMonthSelector() {
   selector.value = state.selectedMonth;
 }
 
+function renderTransactionMonthFilter() {
+  const selector = document.getElementById("transactionMonthFilter");
+  const months = Array.from(new Set(state.transactions.map((item) => item.date?.slice(0, 7))))
+    .filter(Boolean)
+    .sort()
+    .reverse();
+
+  selector.innerHTML = [
+    `<option value="all">Semua bulan</option>`,
+    ...months.map((month) => `<option value="${escapeHtml(month)}">${monthLabel(month)}</option>`)
+  ].join("");
+
+  if (state.transactionMonth !== "all" && !months.includes(state.transactionMonth)) {
+    state.transactionMonth = "all";
+  }
+
+  selector.value = state.transactionMonth;
+}
+
+function renderSortOptions() {
+  document.querySelectorAll("[data-sort-option]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.sortOption === state.transactionSort);
+  });
+}
+
 function renderWeeklyChart(transactions) {
   const chart = document.getElementById("weeklyChart");
   const today = new Date();
@@ -283,12 +323,17 @@ function renderMonthlyExpenseChart() {
 
 function renderTransactionsView() {
   const list = document.getElementById("transactionList");
-  const filtered = sortTransactions(state.transactions).filter((item) => {
+  const filtered = state.transactions.filter((item) => {
     const matchesType = state.typeFilter === "all" || item.type === state.typeFilter;
-    const haystack = `${item.category} ${item.account} ${item.note} ${money(item.amount)}`.toLowerCase();
-    return matchesType && (!state.search || haystack.includes(state.search));
+    const matchesMonth = state.transactionMonth === "all" || item.date?.startsWith(state.transactionMonth);
+    const haystack = `${transactionTitle(item)} ${item.category} ${item.account} ${dateLabel(item.date)} ${money(item.amount)}`.toLowerCase();
+    return matchesType && matchesMonth && (!state.search || haystack.includes(state.search));
   });
-  renderTransactionRows(list, filtered);
+
+  renderSortOptions();
+  renderTransactionRows(list, sortTransactionList(filtered, state.transactionSort), {
+    groupByMonth: state.transactionSort === "month"
+  });
   refreshIcons();
 }
 
@@ -381,21 +426,30 @@ function renderAccountGrid() {
   `).join("");
 }
 
-function renderTransactionRows(container, transactions) {
+function renderTransactionRows(container, transactions, options = {}) {
   if (transactions.length === 0) {
     container.innerHTML = `<div class="empty-state">Belum ada transaksi</div>`;
     return;
   }
 
+  let currentMonth = "";
   container.innerHTML = transactions.map((item) => {
     const sign = item.type === "income" ? "+" : "-";
     const icon = item.type === "income" ? "arrow-down-left" : "arrow-up-right";
     const accent = item.type === "income" ? "#41e3bd" : categoryAccent(item.category);
-    const title = item.note || item.category;
+    const title = transactionTitle(item);
     const meta = item.note
       ? `${item.category} · ${item.account} · ${dateLabel(item.date)}`
       : `${item.account} · ${dateLabel(item.date)}`;
+    const month = item.date?.slice(0, 7) || "";
+    const divider = options.groupByMonth && month !== currentMonth
+      ? `<div class="transaction-month-divider">${escapeHtml(monthLabel(month))}</div>`
+      : "";
+
+    currentMonth = month || currentMonth;
+
     return `
+      ${divider}
       <article class="transaction-row">
         <div class="transaction-main">
           <span class="transaction-icon ${item.type === "income" ? "income" : ""}" style="background:${accent}">
@@ -757,29 +811,250 @@ function getFriendlySyncError(error) {
   return error.message || "Request spreadsheet gagal";
 }
 
-function exportCsv() {
+function exportExcel() {
   const rows = [
-    ["ID", "Tanggal", "Jenis", "Kategori", "Akun", "Jumlah", "Catatan"],
+    ["ID", "Tanggal", "Jenis", "Kategori", "Akun", "Jumlah", "Catatan", "Dibuat", "Diupdate"],
     ...sortTransactions(state.transactions).map((item) => [
       item.id,
       item.date,
-      item.type,
+      item.type === "income" ? "Pemasukan" : "Pengeluaran",
       item.category,
       item.account,
       item.amount,
-      item.note || ""
+      item.note || "",
+      item.createdAt || "",
+      item.updatedAt || ""
     ])
   ];
 
-  const csv = rows.map((row) => row.map(csvCell).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const blob = createXlsxBlob(rows);
+  downloadBlob(blob, `my-dompet-${toDateKey(new Date())}.xlsx`);
+  showToast("Excel dibuat");
+}
+
+function createXlsxBlob(rows) {
+  const files = [
+    {
+      name: "[Content_Types].xml",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+  <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+</Types>`
+    },
+    {
+      name: "_rels/.rels",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`
+    },
+    {
+      name: "xl/workbook.xml",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets><sheet name="Transaksi" sheetId="1" r:id="rId1"/></sheets>
+</workbook>`
+    },
+    {
+      name: "xl/_rels/workbook.xml.rels",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`
+    },
+    {
+      name: "xl/styles.xml",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts>
+  <fills count="1"><fill><patternFill patternType="none"/></fill></fills>
+  <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+  <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+  <cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>
+  <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`
+    },
+    {
+      name: "xl/worksheets/sheet1.xml",
+      content: buildWorksheetXml(rows)
+    }
+  ];
+
+  return createZipBlob(files);
+}
+
+function buildWorksheetXml(rows) {
+  const widths = [24, 12, 14, 18, 16, 14, 28, 22, 22];
+  const columns = widths.map((width, index) => {
+    const column = index + 1;
+    return `<col min="${column}" max="${column}" width="${width}" customWidth="1"/>`;
+  }).join("");
+  const sheetRows = rows.map((row, rowIndex) => {
+    const rowNumber = rowIndex + 1;
+    const cells = row.map((cell, columnIndex) => excelCellXml(cell, rowNumber, columnIndex + 1)).join("");
+    return `<row r="${rowNumber}">${cells}</row>`;
+  }).join("");
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <cols>${columns}</cols>
+  <sheetData>${sheetRows}</sheetData>
+</worksheet>`;
+}
+
+function excelCellXml(value, rowNumber, columnNumber) {
+  const reference = `${excelColumnName(columnNumber)}${rowNumber}`;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return `<c r="${reference}"><v>${value}</v></c>`;
+  }
+
+  const text = String(value ?? "");
+  const preserveSpace = /^\s|\s$/.test(text) ? ` xml:space="preserve"` : "";
+  return `<c r="${reference}" t="inlineStr"><is><t${preserveSpace}>${xmlCell(text)}</t></is></c>`;
+}
+
+function excelColumnName(index) {
+  let name = "";
+  let value = index;
+
+  while (value > 0) {
+    value -= 1;
+    name = String.fromCharCode(65 + (value % 26)) + name;
+    value = Math.floor(value / 26);
+  }
+
+  return name;
+}
+
+function createZipBlob(files) {
+  const encoder = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  const timestamp = dosDateTime(new Date());
+  let offset = 0;
+
+  files.forEach((file) => {
+    const nameBytes = encoder.encode(file.name);
+    const dataBytes = encoder.encode(file.content);
+    const checksum = crc32(dataBytes);
+    const localHeader = createLocalZipHeader(nameBytes, dataBytes, checksum, timestamp);
+    const centralHeader = createCentralZipHeader(nameBytes, dataBytes, checksum, timestamp, offset);
+
+    localParts.push(localHeader, dataBytes);
+    centralParts.push(centralHeader);
+    offset += localHeader.length + dataBytes.length;
+  });
+
+  const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+  const endRecord = createEndZipRecord(files.length, centralSize, offset);
+  return new Blob([...localParts, ...centralParts, endRecord], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+}
+
+function createLocalZipHeader(nameBytes, dataBytes, checksum, timestamp) {
+  const header = new Uint8Array(30 + nameBytes.length);
+  const view = new DataView(header.buffer);
+
+  view.setUint32(0, 0x04034b50, true);
+  view.setUint16(4, 20, true);
+  view.setUint16(6, 0, true);
+  view.setUint16(8, 0, true);
+  view.setUint16(10, timestamp.time, true);
+  view.setUint16(12, timestamp.date, true);
+  view.setUint32(14, checksum, true);
+  view.setUint32(18, dataBytes.length, true);
+  view.setUint32(22, dataBytes.length, true);
+  view.setUint16(26, nameBytes.length, true);
+  view.setUint16(28, 0, true);
+  header.set(nameBytes, 30);
+
+  return header;
+}
+
+function createCentralZipHeader(nameBytes, dataBytes, checksum, timestamp, offset) {
+  const header = new Uint8Array(46 + nameBytes.length);
+  const view = new DataView(header.buffer);
+
+  view.setUint32(0, 0x02014b50, true);
+  view.setUint16(4, 20, true);
+  view.setUint16(6, 20, true);
+  view.setUint16(8, 0, true);
+  view.setUint16(10, 0, true);
+  view.setUint16(12, timestamp.time, true);
+  view.setUint16(14, timestamp.date, true);
+  view.setUint32(16, checksum, true);
+  view.setUint32(20, dataBytes.length, true);
+  view.setUint32(24, dataBytes.length, true);
+  view.setUint16(28, nameBytes.length, true);
+  view.setUint16(30, 0, true);
+  view.setUint16(32, 0, true);
+  view.setUint16(34, 0, true);
+  view.setUint16(36, 0, true);
+  view.setUint32(38, 0, true);
+  view.setUint32(42, offset, true);
+  header.set(nameBytes, 46);
+
+  return header;
+}
+
+function createEndZipRecord(fileCount, centralSize, centralOffset) {
+  const record = new Uint8Array(22);
+  const view = new DataView(record.buffer);
+
+  view.setUint32(0, 0x06054b50, true);
+  view.setUint16(4, 0, true);
+  view.setUint16(6, 0, true);
+  view.setUint16(8, fileCount, true);
+  view.setUint16(10, fileCount, true);
+  view.setUint32(12, centralSize, true);
+  view.setUint32(16, centralOffset, true);
+  view.setUint16(20, 0, true);
+
+  return record;
+}
+
+function dosDateTime(date) {
+  const year = Math.max(date.getFullYear(), 1980);
+  return {
+    time: (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2),
+    date: ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate()
+  };
+}
+
+let crcTable;
+
+function crc32(bytes) {
+  if (!crcTable) {
+    crcTable = Array.from({ length: 256 }, (_, index) => {
+      let value = index;
+      for (let bit = 0; bit < 8; bit += 1) {
+        value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+      }
+      return value >>> 0;
+    });
+  }
+
+  let crc = 0xffffffff;
+  bytes.forEach((byte) => {
+    crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  });
+
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `my-dompet-${toDateKey(new Date())}.csv`;
+  link.download = filename;
   link.click();
-  URL.revokeObjectURL(url);
-  showToast("CSV dibuat");
+  window.setTimeout(() => URL.revokeObjectURL(url), 250);
 }
 
 function getMonthTransactions() {
@@ -822,11 +1097,48 @@ function categoryAccent(category) {
 }
 
 function sortTransactions(transactions) {
-  return [...transactions].sort((a, b) => {
-    const byDate = b.date.localeCompare(a.date);
-    if (byDate !== 0) return byDate;
-    return (b.updatedAt || "").localeCompare(a.updatedAt || "");
-  });
+  return [...transactions].sort(compareLatest);
+}
+
+function sortTransactionList(transactions, mode) {
+  if (mode === "alphabetical") {
+    return [...transactions].sort((a, b) => {
+      const byTitle = transactionTitle(a).localeCompare(transactionTitle(b), "id", { sensitivity: "base" });
+      return byTitle || compareLatest(a, b);
+    });
+  }
+
+  if (mode === "amount") {
+    return [...transactions].sort((a, b) => {
+      const byType = Number(b.type === "expense") - Number(a.type === "expense");
+      if (byType !== 0) return byType;
+      const byAmount = Number(b.amount || 0) - Number(a.amount || 0);
+      if (byAmount !== 0) return byAmount;
+      return b.date.localeCompare(a.date);
+    });
+  }
+
+  if (mode === "month") {
+    return [...transactions].sort((a, b) => {
+      const byMonth = b.date.slice(0, 7).localeCompare(a.date.slice(0, 7));
+      if (byMonth !== 0) return byMonth;
+      const byDate = b.date.localeCompare(a.date);
+      if (byDate !== 0) return byDate;
+      return transactionTitle(a).localeCompare(transactionTitle(b), "id", { sensitivity: "base" });
+    });
+  }
+
+  return sortTransactions(transactions);
+}
+
+function compareLatest(a, b) {
+  const byDate = b.date.localeCompare(a.date);
+  if (byDate !== 0) return byDate;
+  return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+}
+
+function transactionTitle(transaction) {
+  return transaction.note || transaction.category || "Transaksi";
 }
 
 function getCategories(type) {
@@ -1013,9 +1325,13 @@ function shortDayLabel(dateKey) {
     .format(new Date(`${dateKey}T00:00:00`));
 }
 
-function csvCell(value) {
+function xmlCell(value) {
   const text = String(value ?? "");
-  return `"${text.replace(/"/g, '""')}"`;
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function escapeHtml(value) {

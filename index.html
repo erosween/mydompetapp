@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=14">
+    <link rel="stylesheet" href="styles.css?v=16">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script defer src="app.js?v=14"></script>
+    <script defer src="app.js?v=16"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -76,9 +76,9 @@
                 <span>Total Saldo</span>
                 <strong id="balanceAmount">Rp 0</strong>
               </div>
-              <button class="soft-button" type="button" id="exportCsvButton">
-                <i data-lucide="download"></i>
-                CSV
+              <button class="soft-button" type="button" id="exportExcelButton">
+                <i data-lucide="file-spreadsheet"></i>
+                Excel
               </button>
             </div>
             <div class="balance-meta">
@@ -175,11 +175,35 @@
               <i data-lucide="search"></i>
               <input id="searchInput" type="search" placeholder="Cari transaksi">
             </label>
-            <select id="typeFilter" aria-label="Filter jenis transaksi">
-              <option value="all">Semua</option>
-              <option value="income">Pemasukan</option>
-              <option value="expense">Pengeluaran</option>
-            </select>
+            <div class="toolbar-filters">
+              <select id="typeFilter" aria-label="Filter jenis transaksi">
+                <option value="all">Semua</option>
+                <option value="income">Pemasukan</option>
+                <option value="expense">Pengeluaran</option>
+              </select>
+              <select id="transactionMonthFilter" aria-label="Filter bulan transaksi">
+                <option value="all">Semua bulan</option>
+              </select>
+            </div>
+            <div class="sort-strip" aria-label="Urutkan transaksi">
+              <span>Sort</span>
+              <button class="is-active" type="button" data-sort-option="latest">
+                <i data-lucide="clock-3"></i>
+                Terbaru
+              </button>
+              <button type="button" data-sort-option="alphabetical">
+                <i data-lucide="arrow-down-a-z"></i>
+                A-Z
+              </button>
+              <button type="button" data-sort-option="amount">
+                <i data-lucide="trending-down"></i>
+                Tertinggi
+              </button>
+              <button type="button" data-sort-option="month">
+                <i data-lucide="calendar-days"></i>
+                Bulan
+              </button>
+            </div>
           </div>
           <div class="transaction-list" id="transactionList"></div>
         </section>
