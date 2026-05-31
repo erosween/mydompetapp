@@ -40,7 +40,7 @@ http://localhost:4173
 node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --api "https://script.google.com/macros/s/.../exec"
 ```
 
-Parameter `api` dan `token` akan disimpan otomatis, transaksi lokal/demo lama di device itu akan dibersihkan, lalu parameter dibersihkan dari address bar.
+Parameter `api` dan `token` akan disimpan otomatis. Secara default setup link juga membawa `fresh=1`, jadi transaksi lokal/demo lama dan isi sheet `Transactions` untuk database itu akan dikosongkan. Kalau ingin mempertahankan data sheet lama, tambahkan opsi `--keep-data` saat generate setup link.
 
 ## Aktivasi token pembeli
 
@@ -63,6 +63,8 @@ Kalau URL Vercel dan Apps Script sudah ada, tool ini juga bisa langsung membuat 
 ```bash
 node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --api "https://script.google.com/macros/s/.../exec"
 ```
+
+Tambahkan `--keep-data` kalau setup link dipakai untuk client lama dan data spreadsheet tidak boleh dihapus.
 
 Tanpa token, pembeli bisa mencoba app gratis sampai 10 input transaksi baru. Setelah limit habis, app akan meminta token lifetime untuk lanjut input transaksi.
 

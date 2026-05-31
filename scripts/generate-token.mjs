@@ -11,7 +11,7 @@ if (buyer) console.log(`Buyer: ${buyer}`);
 if (options.app && options.api) console.log(`Setup link: ${createSetupLink(options.app, options.api, token, buyer, options)}`);
 
 function parseArgs(args) {
-  const options = {};
+  const options = { fresh: true };
   const buyerParts = [];
 
   for (let index = 0; index < args.length; index += 1) {
@@ -38,6 +38,8 @@ function parseArgs(args) {
     } else if (arg === "--budget" && next) {
       options.budget = next;
       index += 1;
+    } else if (arg === "--keep-data") {
+      options.fresh = false;
     } else {
       buyerParts.push(arg);
     }
@@ -54,6 +56,7 @@ function createSetupLink(appUrl, apiUrl, licenseToken, buyerName, options) {
   const owner = options.owner || buyerName;
   if (owner) url.searchParams.set("owner", owner);
   if (options.budget) url.searchParams.set("budget", options.budget);
+  if (options.fresh) url.searchParams.set("fresh", "1");
 
   return url.toString();
 }

@@ -34,7 +34,7 @@ node scripts/generate-token.mjs "Nama pembeli" --app "https://URL-APP-KAMU" --ap
 ```
 
 2. Buka setup link itu sekali di device client.
-3. App akan menyimpan koneksi database dan token, membersihkan transaksi lokal/demo lama di device itu, lalu menghapus parameter dari address bar.
+3. App akan menyimpan koneksi database dan token. Setup link default membawa `fresh=1`, jadi transaksi lokal/demo lama dan isi sheet `Transactions` untuk database itu dikosongkan.
 4. Client cukup memakai app dan Add to Home Screen.
 
 ## Catatan jualan one-purchase

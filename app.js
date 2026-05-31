@@ -46,7 +46,7 @@ let toastTimer;
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
-  applySetupParamsFromUrl();
+  const setup = applySetupParamsFromUrl();
   state.transactions = loadTransactions();
 
   state.selectedMonth = latestMonthKey(state.transactions) || toMonthKey(new Date());
@@ -55,7 +55,9 @@ function init() {
   render();
   registerServiceWorker();
 
-  if (state.settings.apiUrl) {
+  if (setup.resetRemote) {
+    resetFreshSetupData();
+  } else if (state.settings.apiUrl) {
     syncFromSheet(false).catch(() => {
       setSyncStatus("Offline");
     });
@@ -696,6 +698,7 @@ function applySetupParamsFromUrl() {
   const owner = params.get("owner") || params.get("name");
   const budget = params.get("budget");
   const hasSetupData = Boolean(apiUrl || tokenParam);
+  const freshSetup = hasTruthySetupParam(params, ["fresh", "reset", "clear"]);
   let changed = false;
 
   if (apiUrl) {
@@ -727,11 +730,37 @@ function applySetupParamsFromUrl() {
     if (hasSetupData) localStorage.removeItem(STORAGE_KEYS.transactions);
   }
 
-  const setupKeys = ["api", "apiUrl", "database", "token", "license", "owner", "name", "budget"];
+  const shouldResetRemote = Boolean(apiUrl && freshSetup && isLicenseActive());
+  const setupKeys = ["api", "apiUrl", "database", "token", "license", "owner", "name", "budget", "fresh", "reset", "clear"];
   if (setupKeys.some((key) => params.has(key)) && window.history?.replaceState) {
     setupKeys.forEach((key) => params.delete(key));
     const query = params.toString();
     window.history.replaceState({}, "", `${url.pathname}${query ? `?${query}` : ""}${url.hash}`);
+  }
+
+  return { resetRemote: shouldResetRemote };
+}
+
+function hasTruthySetupParam(params, keys) {
+  return keys.some((key) => {
+    const value = params.get(key);
+    if (value === null) return false;
+    return value === "" || ["1", "true", "yes", "fresh"].includes(value.toLowerCase());
+  });
+}
+
+async function resetFreshSetupData() {
+  try {
+    setSyncStatus("Menyiapkan...");
+    await apiRequest("replaceTransactions", { transactions: [] });
+    state.transactions = [];
+    saveTransactions();
+    render();
+    setSyncStatus("Online");
+    showToast("Data client baru siap kosong");
+  } catch (error) {
+    setSyncStatus("Setup perlu dicek");
+    showToast(getFriendlySyncError(error));
   }
 }
 
