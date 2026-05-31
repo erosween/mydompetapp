@@ -497,6 +497,67 @@ button:disabled {
   border-bottom: 5px solid var(--blue);
 }
 
+.today-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.today-card {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 15px;
+  border: 2px solid rgba(21, 18, 20, 0.1);
+  border-radius: var(--radius);
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.today-card span {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.today-card svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  stroke-width: 2.8px;
+}
+
+.today-card strong {
+  overflow: hidden;
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.today-card small {
+  color: rgba(21, 18, 20, 0.58);
+  font-weight: 850;
+}
+
+.today-income {
+  background: linear-gradient(135deg, #f5fff2, #ffffff 58%);
+}
+
+.today-expense {
+  background: linear-gradient(135deg, #fff8ea, #ffffff 58%);
+}
+
 .panel {
   margin-top: 14px;
   padding: 18px;
@@ -528,6 +589,7 @@ button:disabled {
   outline: none;
   color: var(--ink);
   background: #ffffff;
+  font-size: 16px;
 }
 
 .panel select,
@@ -594,54 +656,51 @@ button:disabled {
 .monthly-chart {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  align-items: end;
+  gap: 14px;
+  min-height: 184px;
+  padding-top: 10px;
 }
 
-.month-expense-card {
+.chart-month {
+  display: grid;
+  align-content: end;
+  min-width: 0;
+  height: 168px;
+  gap: 8px;
+}
+
+.month-bar-track {
+  align-items: end;
+  height: 126px;
+}
+
+.month-bar-fill {
+  min-height: 8px;
+}
+
+.month-chart-label {
   display: grid;
   min-width: 0;
-  min-height: 190px;
-  align-content: end;
-  gap: 12px;
-  padding: 12px;
-  border: 2px solid rgba(21, 18, 20, 0.08);
-  border-radius: var(--radius);
-  background: #ffffff;
+  gap: 2px;
+  text-align: center;
 }
 
-.month-expense-card__bar {
-  display: grid;
-  align-items: end;
-  height: 104px;
-  overflow: hidden;
-  border: 2px solid rgba(21, 18, 20, 0.08);
-  border-radius: 18px;
-  background: #f2eadf;
-}
-
-.month-expense-card__bar span {
-  display: block;
-  min-height: 8px;
-  border-radius: 16px;
-}
-
-.month-expense-card strong,
-.month-expense-card small {
-  display: block;
+.month-chart-label strong,
+.month-chart-label small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.month-expense-card strong {
+.month-chart-label strong {
   font-family: "Space Grotesk", "Manrope", sans-serif;
-  font-size: 1.05rem;
+  font-size: 0.94rem;
 }
 
-.month-expense-card small {
-  margin-top: 3px;
+.month-chart-label small {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   font-weight: 900;
 }
 
@@ -1365,16 +1424,22 @@ button:disabled {
     gap: 10px;
   }
 
+  .today-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
   .monthly-chart {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    min-height: 170px;
   }
 
-  .month-expense-card {
-    min-height: 150px;
+  .chart-month {
+    height: 154px;
   }
 
-  .month-expense-card__bar {
-    height: 76px;
+  .month-bar-track {
+    height: 112px;
   }
 
   .panel {

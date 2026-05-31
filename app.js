@@ -177,6 +177,7 @@ function setActiveNavigation() {
 
 function renderDashboard() {
   const monthTransactions = getMonthTransactions();
+  const todayTotals = calculateTotals(getTodayTransactions());
   const allTotals = calculateTotals(state.transactions);
   const monthTotals = calculateTotals(monthTransactions);
   const budget = Number(state.settings.monthlyBudget) || 0;
@@ -189,6 +190,10 @@ function renderDashboard() {
   document.getElementById("budgetAmount").textContent = `${money(monthTotals.expense)} dari ${money(budget)}`;
   document.getElementById("incomeCount").textContent = `${monthTotals.incomeCount} transaksi`;
   document.getElementById("expenseCount").textContent = `${monthTotals.expenseCount} transaksi`;
+  document.getElementById("todayIncomeAmount").textContent = money(todayTotals.income);
+  document.getElementById("todayExpenseAmount").textContent = money(todayTotals.expense);
+  document.getElementById("todayIncomeCount").textContent = `${todayTotals.incomeCount} transaksi`;
+  document.getElementById("todayExpenseCount").textContent = `${todayTotals.expenseCount} transaksi`;
   document.getElementById("monthCashflow").textContent = `Cashflow bulan ini ${money(monthTotals.balance)}`;
   document.getElementById("syncStatus").textContent = state.settings.apiUrl
     ? "Tersambung ke spreadsheet"
@@ -263,15 +268,15 @@ function renderMonthlyExpenseChart() {
     const height = Math.max(item.total > 0 ? 18 : 8, Math.round((item.total / max) * 100));
     const accent = ACCENTS[(index + 1) % ACCENTS.length];
     return `
-      <article class="month-expense-card" title="${escapeHtml(`${monthLabel(item.month)} ${money(item.total)}`)}">
-        <div class="month-expense-card__bar">
-          <span style="height:${height}%; background:${accent}"></span>
+      <div class="chart-month" title="${escapeHtml(`${monthLabel(item.month)} ${money(item.total)}`)}">
+        <div class="bar-track month-bar-track">
+          <div class="bar-fill month-bar-fill" style="height:${height}%; background:${accent}"></div>
         </div>
-        <div>
+        <div class="month-chart-label">
           <strong>${shortMonthName(item.month)}</strong>
-          <small>${money(item.total)}</small>
+          <small>${compactMoney(item.total)}</small>
         </div>
-      </article>
+      </div>
     `;
   }).join("");
 }
@@ -781,6 +786,11 @@ function getMonthTransactions() {
   return state.transactions.filter((item) => item.date && item.date.startsWith(state.selectedMonth));
 }
 
+function getTodayTransactions() {
+  const today = toDateKey(new Date());
+  return state.transactions.filter((item) => item.date === today);
+}
+
 function calculateTotals(transactions) {
   return transactions.reduce((totals, item) => {
     if (item.type === "income") {
@@ -929,6 +939,23 @@ function money(value) {
     currency: "IDR",
     maximumFractionDigits: 0
   }).format(Number(value || 0));
+}
+
+function compactMoney(value) {
+  const amount = Number(value || 0);
+  const sign = amount < 0 ? "-" : "";
+  const absolute = Math.abs(amount);
+
+  if (absolute >= 1000000000) return `${sign}Rp${compactDecimal(absolute / 1000000000)} M`;
+  if (absolute >= 1000000) return `${sign}Rp${compactDecimal(absolute / 1000000)} jt`;
+  if (absolute >= 1000) return `${sign}Rp${compactDecimal(absolute / 1000)} rb`;
+  return money(amount);
+}
+
+function compactDecimal(value) {
+  return new Intl.NumberFormat("id-ID", {
+    maximumFractionDigits: value >= 10 ? 0 : 1
+  }).format(value);
 }
 
 function numberFromInput(value) {

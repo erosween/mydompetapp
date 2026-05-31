@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=11">
+    <link rel="stylesheet" href="styles.css?v=12">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script defer src="app.js?v=11"></script>
+    <script defer src="app.js?v=12"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -109,6 +109,19 @@
               <span>Budget Terpakai</span>
               <strong id="budgetPercent">0%</strong>
               <small id="budgetAmount">Rp 0 dari Rp 0</small>
+            </article>
+          </div>
+
+          <div class="today-grid" aria-label="Ringkasan transaksi hari ini">
+            <article class="today-card today-income">
+              <span><i data-lucide="arrow-down-left"></i> Masuk hari ini</span>
+              <strong id="todayIncomeAmount">Rp 0</strong>
+              <small id="todayIncomeCount">0 transaksi</small>
+            </article>
+            <article class="today-card today-expense">
+              <span><i data-lucide="arrow-up-right"></i> Keluar hari ini</span>
+              <strong id="todayExpenseAmount">Rp 0</strong>
+              <small id="todayExpenseCount">0 transaksi</small>
             </article>
           </div>
 
